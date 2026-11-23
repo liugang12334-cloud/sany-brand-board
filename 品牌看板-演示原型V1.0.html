@@ -35,6 +35,41 @@ body{margin:0;background:var(--bg);color:var(--txt);
 .btn:hover{border-color:var(--blue);color:var(--blue)}
 .btn.pri{background:var(--blue);color:#fff;border-color:var(--blue)}
 .btn.pri:hover{background:var(--blue-d)}
+/* 自定义时间范围 */
+.daterange{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 8px;background:#F8FBFE;border:1px dashed #BFD6EC;border-radius:7px}
+.daterange input[type=date]{font-family:inherit;font-size:11.5px;color:var(--txt);border:1px solid var(--line);border-radius:5px;padding:3px 6px;background:#fff}
+.daterange .btn{padding:3px 9px}
+.datehint{font-size:11px;color:var(--t3)}
+.datehint.bad{color:var(--red)}
+/* 多选筛选 chips */
+.picker{padding:7px 0 9px;border-bottom:1px solid var(--line2)}
+.picker-hd{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--t2);margin-bottom:6px}
+.picker-ops{margin-left:auto;font-size:10.5px;color:var(--t3)}
+.picker-ops b{color:var(--blue);cursor:pointer;font-weight:600}
+.picker-ops b:hover{text-decoration:underline}
+.chips{display:flex;flex-wrap:wrap;gap:5px;max-height:104px;overflow-y:auto}
+.chip{font-size:11px;padding:3px 9px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--t2);cursor:pointer;white-space:nowrap;user-select:none}
+.chip:hover{border-color:var(--blue);color:var(--blue)}
+.chip.on{background:var(--blue-bg);border-color:#9CC6E8;color:var(--blue);font-weight:600}
+.chip .n{color:var(--t3);font-size:10px;margin-left:3px}
+.chip.on .n{color:#6E9BC4}
+.heat-panel{margin-bottom:12px}
+.placeholder-note{font-size:11px;color:var(--t3);padding:7px 10px;background:#FDF9F4;border:1px dashed #E8D9C4;border-radius:7px;margin-top:8px;display:none}
+.placeholder-note.on{display:block}
+/* 热力矩阵表 */
+.heat-table{width:100%;border-collapse:separate;border-spacing:2px;font-size:11px;font-variant-numeric:tabular-nums}
+.heat-table th,.heat-table td{padding:5px 6px;text-align:center;white-space:nowrap}
+.heat-table thead th{border:0;font-size:10.5px;font-weight:600;color:var(--t3)}
+.heat-table .hk{text-align:left;color:var(--t2);font-size:10.5px;position:sticky;left:0;background:#fff;z-index:2;min-width:150px;max-width:230px;overflow:hidden;text-overflow:ellipsis}
+.heat-table .hbrand{color:var(--blue);cursor:pointer}
+.heat-table .hbrand:hover{text-decoration:underline}
+.heat-table .rk{text-align:left;color:var(--blue);cursor:pointer;position:sticky;left:0;background:#fff;z-index:2;max-width:230px;overflow:hidden;text-overflow:ellipsis}
+.heat-table .rk:hover{text-decoration:underline}
+.heat-table .hc{border-radius:3px}
+.heat-table .hc span{color:var(--t2)}
+.heat-table .hc span.on{color:#fff;font-weight:600}
+.heat-table .htot{background:#F5F8FB;color:var(--t2);font-weight:600;font-size:10.5px}
+.heat-table tfoot .htot{border-top:1px solid var(--line)}
 
 /* 面包屑 */
 .crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 12px;padding:9px 14px;background:#fff;border:1px solid var(--line);border-radius:10px}
@@ -134,12 +169,14 @@ svg text{font-family:inherit}
   <div class="filters">
     <div class="fgroup"><span class="fl">时间</span>
       <div class="seg" id="segTime">
-        <button data-v="12m" class="on">近12月</button><button data-v="6m">近6月</button><button data-v="3m">近3月</button><button data-v="ytd">本年</button>
+        <button data-v="12m" class="on">近12月</button><button data-v="6m">近6月</button><button data-v="3m">近3月</button><button data-v="ytd">本年</button><button data-v="custom">自定义</button>
       </div>
-    </div>
-    <div class="fgroup"><span class="fl">区域口径</span>
-      <div class="seg" id="segRegion">
-        <button data-v="A" class="on">A 结算归属组织</button><button data-v="B">B 项目所在地</button>
+      <div class="daterange" id="dateRange" style="display:none">
+        <input type="date" id="dateFrom" value="2026-06-01"><span class="fl">至</span>
+        <input type="date" id="dateTo" value="2026-11-30">
+        <button class="btn pri" id="btnApplyDate">应用</button>
+        <button class="btn" id="btnClearDate">清除</button>
+        <span class="datehint" id="dateHint"></span>
       </div>
     </div>
     <div class="fgroup"><span class="fl">结算类型</span>
@@ -169,11 +206,34 @@ svg text{font-family:inherit}
     </div>
   </div>
 
-  <div class="row3">
-    <div class="panel">
-      <div class="ph"><h3>区域 × 品牌</h3><span class="ps" id="heatSub"></span><span class="pa" id="heatPath"></span></div>
-      <div id="cHeat"></div>
+  <div class="panel heat-panel">
+    <div class="ph"><h3>区域 × 品牌</h3><span class="ps" id="heatSub"></span><span class="pa" id="heatPath"></span></div>
+    <div class="picker">
+      <div class="picker-hd"><span>区域（可多选）</span><span class="picker-ops"><b id="heatRegAll">全选</b> / <b id="heatRegNone">清空</b></span></div>
+      <div class="chips" id="heatRegChips"></div>
     </div>
+    <div class="picker">
+      <div class="picker-hd"><span>品牌（可多选，默认 Top 12）</span><span class="picker-ops"><b id="heatBrandTop">Top12</b> / <b id="heatBrandAll">全选</b> / <b id="heatBrandNone">清空</b></span></div>
+      <div class="chips" id="heatBrandChips"></div>
+    </div>
+    <div class="tbl-scroll" id="cHeat"></div>
+  </div>
+
+  <div class="panel heat-panel">
+    <div class="ph"><h3>组织 × 品牌</h3><span class="ps" id="orgSub"></span><span class="pa" id="orgPath"></span></div>
+    <div class="picker">
+      <div class="picker-hd"><span>组织（二级单位，可多选）</span><span class="picker-ops"><b id="orgAll">全选</b> / <b id="orgNone">清空</b></span></div>
+      <div class="chips" id="orgChips"></div>
+    </div>
+    <div class="picker">
+      <div class="picker-hd"><span>品牌（可多选）</span><span class="picker-ops"><b id="orgBrandTop">Top12</b> / <b id="orgBrandAll">全选</b> / <b id="orgBrandNone">清空</b></span></div>
+      <div class="chips" id="orgBrandChips"></div>
+    </div>
+    <div class="tbl-scroll" id="cOrg"></div>
+    <div class="placeholder-note" id="orgNote"></div>
+  </div>
+
+  <div class="row3">
     <div class="panel">
       <div class="ph"><h3>采购渠道结构</h3><span class="ps" id="channelSub">金额占比 · 点击下钻</span><span class="pa" id="channelPath"></span></div>
       <div id="cChannel"></div>
@@ -181,6 +241,10 @@ svg text{font-family:inherit}
     <div class="panel">
       <div class="ph"><h3>供应商 TOP 8</h3><span class="ps" id="suppSub">点击下钻至品牌</span><span class="pa" id="suppPath"></span></div>
       <div id="cSupp"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>结算类型结构</h3><span class="ps">全类型 7 类 · 金额占比</span></div>
+      <div id="cStype"></div>
     </div>
   </div>
 
@@ -195,7 +259,7 @@ svg text{font-family:inherit}
     <div class="tbl-scroll"><table class="dt" id="tDetail"></table></div>
   </div>
 
-  <div class="foot">品牌看板 · 演示原型 V1.0 ｜ 口径：全量快照 max(ds) · 仅正向（剔除退还单） · 价格指标仅物资类 · 区域双口径 ｜ 数据为程序生成的示例数据</div>
+  <div class="foot">品牌看板 · 演示原型 V1.0 ｜ 口径：全量快照 max(ds) · 仅正向（剔除退还单） · 价格指标仅物资类 · 区域按结算归属组织 ｜ 数据为程序生成的示例数据</div>
 </div>
 
 <div class="mask" id="mask"></div>
@@ -224,15 +288,38 @@ function rii(a,b){return Math.floor(ri(a,b+1))}
 function pick(a){return a[Math.floor(rnd()*a.length)]}
 function wpick(pairs){var s=0,i;for(i=0;i<pairs.length;i++)s+=pairs[i][1];var r=rnd()*s;for(i=0;i<pairs.length;i++){r-=pairs[i][1];if(r<=0)return pairs[i][0]}return pairs[pairs.length-1][0]}
 
-/* ---------- 组织维：局 → 二级单位 → 分公司 → 项目 ---------- */
+/* ---------- 区域维：按用户指定改为六大地区（结算归属组织口径） ---------- */
 var ORG = [
-  {r:'华东公司', w:26, cities:['杭州','苏州','南京']},
-  {r:'华中公司', w:24, cities:['武汉','长沙','郑州']},
-  {r:'华南公司', w:17, cities:['广州','深圳','佛山']},
-  {r:'华北公司', w:13, cities:['北京','天津','石家庄']},
-  {r:'西南公司', w:12, cities:['成都','重庆','昆明']},
-  {r:'西北公司', w:8,  cities:['西安','兰州','乌鲁木齐']}
+  {r:'华东地区', w:26, cities:['杭州','苏州','南京']},
+  {r:'华中地区', w:24, cities:['武汉','长沙','郑州']},
+  {r:'华南地区', w:17, cities:['广州','深圳','佛山']},
+  {r:'华北地区', w:13, cities:['北京','天津','石家庄']},
+  {r:'东北地区', w:12, cities:['沈阳','大连','长春']},
+  {r:'西北地区', w:8,  cities:['西安','兰州','乌鲁木齐']}
 ];
+
+/* ---------- 组织维（可配置）：局 → 二级单位 → 分公司 → 项目 ----------
+   数据来源：用户提供的"选择组织"示例截图（中建三局集团有限公司下二级单位）。
+   以配置数组形式独立声明，不在渲染逻辑里写死；后续如提供真实组织维表，
+   只需替换 ORG_UNITS 即可，orgOf()/组织×品牌模块自动适配。
+   region 字段为该二级单位的归属区域，用于组织×品牌模块按区域过滤。      */
+var ORG_ROOT = '中建三局集团有限公司';
+var ORG_UNITS = [
+  {id:'U01', name:'基础设施事业部（铁投公司）',           region:'华中地区'},
+  {id:'U02', name:'中建三局第一建设工程有限责任公司',     region:'华北地区'},
+  {id:'U03', name:'中建三局第二建设工程有限责任公司',     region:'华中地区'},
+  {id:'U04', name:'中建三局第三建设工程有限责任公司',     region:'华东地区'},
+  {id:'U05', name:'中建三局集团有限公司工程总承包公司',   region:'华东地区'},
+  {id:'U06', name:'中建三局城市投资运营有限公司',         region:'华中地区'},
+  {id:'U07', name:'中建壹品投资发展有限公司',             region:'华南地区'},
+  {id:'U08', name:'中建三局集团建设发展有限公司',         region:'华东地区'},
+  {id:'U09', name:'中建三局绿色产业投资有限公司',         region:'华南地区'},
+  {id:'U10', name:'中建三局集团北京有限公司',             region:'华北地区'},
+  {id:'U11', name:'中建三局集团华东有限公司',             region:'华东地区'},
+  {id:'U12', name:'中建三局集团华南有限公司',             region:'华南地区'},
+  {id:'U13', name:'中建三局集团西北有限公司',             region:'西北地区'}
+];
+var ORG_UNITS_READY = ORG_UNITS.length > 0;   /* 示例缺失时走占位，不写死 */
 var SUB_SUFFIX=['一分公司','二分公司'];
 var PROJ_SUFFIX=['金融中心项目','产业园项目','住宅总包项目','会展中心项目','轨道交通项目','医院项目'];
 var PROJECTS=[], ORG2PROJ={};
@@ -291,10 +378,12 @@ var BRANDS={
  '保温材料':[['洛科威',1.15,22,'ROCKWOOL/洛科威岩棉'],['樱花',1.0,26,'樱花岩棉'],['华能',.9,24,'华能保温']]
 };
 var REGION_BRAND_BIAS={ /* 区域品牌偏好：让区域×品牌矩阵有真实差异 */
- '华东公司':{'宝钢':1.5,'沙钢':1.4},'华中公司':{'武钢':1.7,'鄂钢':1.6},
- '华南公司':{'海螺':1.3},'华北公司':{'首钢':1.8,'鞍钢':1.4},
- '西南公司':{'华新':1.2},'西北公司':{'鞍钢':1.2}
+ '华东地区':{'宝钢':1.5,'沙钢':1.4},'华中地区':{'武钢':1.7,'鄂钢':1.6},
+ '华南地区':{'海螺':1.3},'华北地区':{'首钢':1.8,'鞍钢':1.4},
+ '东北地区':{'鞍钢':1.5,'首钢':1.2},'西北地区':{'鞍钢':1.2,'武钢':1.15}
 };
+/* 组织→区域映射的兜底：若组织示例缺失，行上的 org 为空，组织模块走占位 */
+function orgOf(r){return r.org||''}
 var SUPPLIERS={}, SUPPLIER_LIST=[];
 Object.keys(BRANDS).forEach(function(cat){
   BRANDS[cat].forEach(function(b){
@@ -319,11 +408,24 @@ function timeFactor(mi,cat){
 
 /* ---------- 生成明细行（与 DWD 字段对应） ---------- */
 var ROWS=[];
+/* 给明细行分配二级单位：从 ORG_UNITS 配置中按归属区域匹配，同区域多单位按序号轮询，
+   保证同一项目归属稳定、且各组织都有数据；配置为空时不挂 org（组织模块走占位）。 */
+var ORG_BY_REGION={};
+ORG_UNITS.forEach(function(u){(ORG_BY_REGION[u.region]=ORG_BY_REGION[u.region]||[]).push(u.id)});
+var ORG_PICK={};
+function assignOrg(region,key){
+  var pool=ORG_BY_REGION[region];
+  if(!pool||!pool.length)return '';
+  var i=(ORG_PICK[key]=(ORG_PICK[key]||0)+1)-1;
+  return pool[i%pool.length];
+}
 function pushRow(o){
   o.id=ROWS.length+1;
   o.amount=o.qty*o.price;
   /* 下钻维度统一取 cat1、cat2、cat3，此处一次性建立规范字段，避免两套字段混用 */
   o.cat1=o.c1; o.cat2=o.c2; o.cat3=o.c3;
+  /* 组织二级单位：按结算归属区域 + 项目轮询分配（可配置） */
+  o.org=ORG_UNITS_READY?assignOrg(o.region,o.projId):'';
   ROWS.push(o);
 }
 
@@ -380,21 +482,30 @@ MONTHS.forEach(function(month,mi){
    状态 / 过滤 / 聚合
    ===================================================================== */
 /* 全局筛选器 + 每个模块各自独立的下钻路径（彼此不共享、不联动） */
-var MODULES=['trend','cat','region','channel','supplier'];
+var MODULES=['trend','cat','region','org','channel','supplier'];
 var state={
-  time:'12m', regionMode:'A', type:'all', tax:'incl',
-  paths:{trend:[], cat:[], region:[], channel:[], supplier:[]}
+  time:'12m', dateFrom:'2026-06-01', dateTo:'2026-11-30',
+  type:'all', tax:'incl',
+  paths:{trend:[], cat:[], region:[], org:[], channel:[], supplier:[]},
+  /* 区域×品牌、组织×品牌的独立多选筛选（不属于下钻路径）
+     null = 全选；首屏品牌默认 Top12，避免矩阵过宽，可点"全选"展开 */
+  heatRegions:null, heatBrands:'__top12__',
+  orgUnits:null, orgBrands:'__top12__'
 };
 var PALETTE=['#1668B8','#0E8B85','#C2410C','#7C5CBF','#B45309','#2F6F4F','#5B9BD5','#8A99A8','#C2607E','#4A7C9B'];
 var DIM_LABEL={cat1:'品类大类',cat2:'品类中类',cat3:'品类小类',product:'物料',brand:'品牌',
-  region:'区域',sub:'分公司',proj:'项目',supplier:'供应商',channel:'渠道',month:'月份'};
+  region:'区域',sub:'分公司',proj:'项目',org:'组织',supplier:'供应商',channel:'渠道',month:'月份'};
 
-function regionOf(r){return state.regionMode==='A'?r.region:r.projRegion}
+function regionOf(r){return r.region}
 function amtOf(r){return state.tax==='incl'?r.amount:r.amount/1.13}
 function inTime(r){
   if(state.time==='6m')return r.mi>=6;
   if(state.time==='3m')return r.mi>=9;
   if(state.time==='ytd')return r.month>='2026-01';
+  if(state.time==='custom'){
+    var a=state.dateFrom?state.dateFrom.slice(0,7):'', b=state.dateTo?state.dateTo.slice(0,7):'';
+    return (!a||r.month>=a)&&(!b||r.month<=b);
+  }
   return true;
 }
 function isMat(r){return r.stype<=3}
@@ -550,35 +661,43 @@ function chartBars(data,opts){
   return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="height:auto">'+s+'</svg>';
 }
 
-function chartHeat(rows,regionKeys){
-  var brands=groupAmt(rows.filter(function(r){return r.brand}),function(r){return r.brand}).slice(0,6);
-  if(!regionKeys.length||!brands.length)return '<div class="empty">当前筛选下无数据</div>';
-  var W=600, LW=86, CW=(W-LW-14)/brands.length, RH=34, T=30;
-  var H=T+regionKeys.length*RH+8;
-  var cell={}; var max=0;
-  regionKeys.forEach(function(rk){
+/* 通用热力矩阵：rowKeys 为行维度取值，brands 为列品牌，rowOf(r) 返回该行的行键。
+   用 HTML table 渲染，列数多时自动铺满整行并允许横向滚动，品牌项完整展示不截断。 */
+function chartHeat(rows,rowKeys,brands,rowOf,opts){
+  opts=opts||{};
+  if(!rowKeys.length||!brands.length)return '<div class="empty">当前筛选下无数据</div>';
+  var cell={}, rowTot={}, max=0;
+  rowKeys.forEach(function(rk){
+    rowTot[rk]=0;
     brands.forEach(function(b){
-      var v=sum(rows.filter(function(r){return regionOf(r)===rk&&r.brand===b.k}),amtOf);
-      cell[rk+'|'+b.k]=v; if(v>max)max=v;
+      var v=sum(rows.filter(function(r){return rowOf(r)===rk&&r.brand===b}),amtOf);
+      cell[rk+'|'+b]=v; rowTot[rk]+=v; if(v>max)max=v;
     });
   });
-  var s='';
-  brands.forEach(function(b,i){
-    s+='<text x="'+(LW+CW*i+CW/2)+'" y="16" text-anchor="middle" font-size="11" fill="#1668B8" font-weight="600" class="clickable" data-brandcol="'+esc(b.k)+'">'+esc(b.k)+'</text>';
+  var colW=Math.max(66,Math.min(120, 1400/(brands.length+1)));
+  var h='<table class="heat-table"><thead><tr><th class="hk">'+esc(opts.rowLabel||'行维度')+' / 品牌</th>';
+  brands.forEach(function(b){
+    h+='<th class="hbrand" style="min-width:'+colW+'px" data-brandcol="'+esc(b)+'" title="查看品牌详情">'+esc(b)+'</th>';
   });
-  regionKeys.forEach(function(rk,ri){
-    var y=T+ri*RH;
-    s+='<text x="'+(LW-10)+'" y="'+(y+RH/2+4)+'" text-anchor="end" font-size="11" fill="#1668B8" class="clickable" data-regionrow="'+esc(rk)+'">'+esc(rk)+'</text>';
-    brands.forEach(function(b,bi){
-      var v=cell[rk+'|'+b.k], op=max>0?(.06+.86*v/max):0;
-      var x=LW+bi*CW;
-      s+='<g class="clickable" data-cell="'+esc(rk)+'|'+esc(b.k)+'">'+
-         '<rect x="'+(x+2)+'" y="'+(y+2)+'" width="'+(CW-4)+'" height="'+(RH-4)+'" rx="3" fill="#1668B8" opacity="'+op.toFixed(3)+'">'+
-         '<title>'+esc(rk)+' × '+esc(b.k)+'　'+fm(v)+'</title></rect>'+
-         '<text x="'+(x+CW/2)+'" y="'+(y+RH/2+4)+'" text-anchor="middle" font-size="10.5" fill="'+(op>.55?'#fff':'#3D4B5A')+'">'+(v>0?fm(v):'—')+'</text></g>';
+  h+='<th class="htot">行合计</th></tr></thead><tbody>';
+  rowKeys.forEach(function(rk){
+    var rowText=opts.rowLabelFn?opts.rowLabelFn(rk):rk;
+    h+='<tr><td class="rk" data-rowkey="'+esc(rk)+'" title="'+esc(rowText)+' · 下钻该'+esc(opts.rowLabel||'行')+'">'+esc(rowText)+'</td>';
+    brands.forEach(function(b){
+      var v=cell[rk+'|'+b], op=max>0?(.05+.85*v/max):0;
+      var shade='background:rgba(22,104,184,'+op.toFixed(3)+')';
+      h+='<td class="hc clickable" style="'+shade+'" data-cell="'+esc(rk)+'|'+esc(b)+'" title="'+esc(rk)+' × '+esc(b)+'　'+fm(v)+'">'+
+         '<span class="'+(op>.55?'on':'')+'">'+(v>0?fm(v):'—')+'</span></td>';
     });
+    h+='<td class="htot">'+fm(rowTot[rk])+'</td></tr>';
   });
-  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="height:auto">'+s+'</svg>';
+  h+='</tbody><tfoot><tr><td class="hk">品牌合计</td>';
+  brands.forEach(function(b){
+    var t=0; rowKeys.forEach(function(rk){t+=cell[rk+'|'+b]||0});
+    h+='<td class="htot">'+fm(t)+'</td>';
+  });
+  h+='<td class="htot">'+fm(sum(rowKeys,function(rk){return rowTot[rk]}))+'</td></tr></tfoot></table>';
+  return h;
 }
 
 function chartDonut(data){
@@ -639,7 +758,7 @@ function chartBox(st){
    ===================================================================== */
 var CAT_SEQ=['cat1','cat2','cat3','product'];
 var REG_SEQ=['region','sub','proj'];
-var PATH_EL={trend:'trendPath',cat:'catPath',region:'heatPath',channel:'channelPath',supplier:'suppPath'};
+var PATH_EL={trend:'trendPath',cat:'catPath',region:'heatPath',org:'orgPath',channel:'channelPath',supplier:'suppPath'};
 
 function depthOf(seq,path){var d=0;path=path||[];seq.forEach(function(dim,i){if(path.some(function(p){return p.dim===dim}))d=i+1});return d}
 
@@ -664,6 +783,7 @@ function renderMod(mod){
   if(mod==='trend')renderTrend(rows);
   else if(mod==='cat')renderCat(rows);
   else if(mod==='region')renderHeat(rows);
+  else if(mod==='org')renderOrgHeat(rows);
   else if(mod==='channel')renderChannel(rows);
   else if(mod==='supplier')renderSupp(rows);
   renderLocalPath(mod);
@@ -676,7 +796,9 @@ function renderLocalPath(mod){
   path.forEach(function(p,i){
     if(i)h+='<span class="csep">›</span>';
     var cur=i===path.length-1;
-    h+='<span class="lcrumb'+(cur?' cur':'')+'" data-mod="'+mod+'" data-i="'+i+'" title="'+(cur?'当前层':'回到此层')+'">'+esc(p.value)+'</span>';
+    var label=p.value;
+    if(p.dim==='org'){var u=ORG_UNITS.filter(function(x){return x.id===p.value})[0];if(u)label=u.name}
+    h+='<span class="lcrumb'+(cur?' cur':'')+'" data-mod="'+mod+'" data-i="'+i+'" title="'+(cur?'当前层':'回到此层')+'">'+esc(label)+'</span>';
   });
   h+='<span class="lx" data-mod="'+mod+'" data-i="'+(path.length-2)+'" title="返回上一级">×</span>';
   el.innerHTML=h;
@@ -738,21 +860,83 @@ function renderCat(rows){
   }
 }
 
+/* 所有可选品牌（物资类，按金额降序） */
+function allBrands(rows){
+  return groupAmt(rows.filter(function(r){return r.brand&&isMat(r)}),function(r){return r.brand}).map(function(x){return x.k});
+}
 function regionKeys(rows){
   var d=depthOf(REG_SEQ,state.paths.region);
   if(d===0)return groupAmt(rows,regionOf).map(function(x){return x.k});
   if(d===1)return groupAmt(rows,function(r){return r.sub}).map(function(x){return x.k});
   return groupAmt(rows,function(r){return r.proj}).slice(0,8).map(function(x){return x.k});
 }
+function selected(list,all){
+  if(list==='__top12__')return all.slice(0,12);
+  if(!list||!list.length)return all;
+  return all.filter(function(x){return list.indexOf(x)>=0});
+}
 function renderHeat(rows){
   var d=depthOf(REG_SEQ,state.paths.region);
-  var keys=regionKeys(rows);
-  document.getElementById('cHeat').innerHTML=chartHeat(rows,keys);
-  var names=['二级单位','分公司','项目','项目'];
+  var rowAccessor = d===0?regionOf : (d===1?function(r){return r.sub}:function(r){return r.proj});
+  var names=['区域','分公司','项目','项目'];
+  var regAll=groupAmt(rows,regionOf).map(function(x){return x.k});
+  var brandAll=allBrands(rows);
+  var regSel=selected(state.heatRegions,regAll);
+  var brandSel=selected(state.heatBrands,brandAll);
+  var view=rows.filter(function(r){return regSel.indexOf(regionOf(r))>=0});
+  var keys=regionKeys(view);
+  document.getElementById('cHeat').innerHTML=chartHeat(view,keys,brandSel,rowAccessor,{rowLabel:names[Math.min(d,3)]});
   document.getElementById('heatSub').textContent=
-    '口径 '+(state.regionMode==='A'?'A 结算归属组织':'B 项目所在地')+' · 行：'+names[Math.min(d,3)]+' · 列：Top6 品牌 · 点击行/单元格下钻';
+    '行：'+names[Math.min(d,3)]+
+    ' · 列：'+brandSel.length+'/'+brandAll.length+' 个品牌 · 点击行下钻 / 品牌看详情';
+  renderChips('heatRegChips',regAll,state.heatRegions,'heatReg');
+  renderChips('heatBrandChips',brandAll,state.heatBrands,'heatBrand');
+}
+/* 组织 × 品牌：组织来自可配置 ORG_UNITS，按 orgOf(r) 归属 */
+function orgKeys(rows){return groupAmt(rows,orgOf).map(function(x){return x.k}).filter(Boolean)}
+function renderOrgHeat(rows){
+  var note=document.getElementById('orgNote');
+  if(!ORG_UNITS_READY){
+    document.getElementById('cOrg').innerHTML='<div class="empty">组织示例数据未提供 · 已预留可配置结构（ORG_UNITS），补充后自动展示</div>';
+    note.className='placeholder-note on';
+    note.textContent='占位说明：组织维度来自用户提供的"选择组织"示例截图，当前以配置数组 ORG_UNITS 独立声明；若后续提供真实组织维表，替换该配置即可，无需改动渲染逻辑。';
+    return;
+  }
+  note.className='placeholder-note';
+  var orgAll=orgKeys(rows), brandAll=allBrands(rows);
+  var orgSel=selected(state.orgUnits,orgAll);
+  var brandSel=selected(state.orgBrands,brandAll);
+  var view=rows.filter(function(r){return orgSel.indexOf(orgOf(r))>=0});
+  var keys=orgKeys(view);
+  document.getElementById('cOrg').innerHTML=chartHeat(view,keys,brandSel,orgOf,{
+    rowLabel:'二级单位',
+    rowLabelFn:function(id){var u=ORG_UNITS.filter(function(x){return x.id===id})[0];return u?u.name:id}
+  });
+  document.getElementById('orgSub').textContent=
+    '来源：组织示例配置 '+ORG_UNITS.length+' 个二级单位 · 当前展示 '+orgSel.length+' 个 × '+brandSel.length+' 个品牌';
+  /* 组织 chip 显示名称（id→name），其余按 id 过滤 */
+  renderChips('orgChips',orgAll,state.orgUnits,'org',function(id){
+    var u=ORG_UNITS.filter(function(x){return x.id===id})[0];
+    return u?u.name:id;
+  });
+  renderChips('orgBrandChips',brandAll,state.orgBrands,'orgBrand');
+}
+/* 通用 chips 渲染：sel 为 null 表示全选 */
+function renderChips(elId,all,sel,group,labelFn){
+  var el=document.getElementById(elId); if(!el)return;
+  labelFn=labelFn||function(x){return x};
+  var active=selected(sel,all);
+  el.innerHTML=all.map(function(x){
+    var on=active.indexOf(x)>=0;
+    return '<span class="chip'+(on?' on':'')+'" data-group="'+group+'" data-val="'+esc(x)+'" title="'+esc(labelFn(x))+'">'+
+      esc(labelFn(x))+(group==='heatReg'||group==='org'?'':'<span class="n">'+(on?'✓':'')+'</span>')+'</span>';
+  }).join('');
 }
 
+function renderStype(rows){
+  var data=groupAmt(rows,function(r){return STYPE_NAME[r.stype]}).map(function(x){return {label:x.k,value:x.amt}});
+  document.getElementById('cStype').innerHTML=chartDonut(data);
+}
 function renderChannel(rows){
   var data=groupAmt(rows,function(r){return r.channel}).map(function(x){return {label:x.k,value:x.amt}});
   document.getElementById('cChannel').innerHTML=chartDonut(data);
@@ -815,7 +999,8 @@ function render(){
   var all=baseRows();
   renderKpi(all);                 /* KPI 固定全局口径，不随任何模块下钻变化 */
   renderTrend(rowsFor('trend')); renderCat(rowsFor('cat'));
-  renderHeat(rowsFor('region')); renderChannel(rowsFor('channel')); renderSupp(rowsFor('supplier'));
+  renderHeat(rowsFor('region')); renderOrgHeat(rowsFor('org'));
+  renderChannel(rowsFor('channel')); renderSupp(rowsFor('supplier')); renderStype(all);
   renderRank(all); renderDetail(all);  /* 排行榜与明细固定全局口径 */
   MODULES.forEach(renderLocalPath);
 }
@@ -863,7 +1048,7 @@ function openBrand(name,scopeRows){
     '<div class="kpi"><div class="kl">加权均价</div><div class="kv">'+(showPrice?fprice(sum(mat,amtOf)/sum(mat,function(r){return r.qty})):'—')+'</div><div class="ks">'+(showPrice?'元/'+esc(units[0]):'多单位')+'</div></div>'+
     '<div class="kpi"><div class="kl">覆盖项目 / 供应商</div><div class="kv">'+k.projects+' <small>/ '+k.suppliers+'</small></div><div class="ks">清单项 '+k.items+' 条</div></div></div>';
   h+='<div class="panel" style="margin-bottom:12px"><div class="ph"><h3>月度趋势</h3><span class="ps">金额 + 加权均价</span></div>'+t.svg+'<div class="legend">'+t.legend+'</div></div>';
-  h+='<div class="dgrid"><div class="panel"><div class="ph"><h3>区域分布</h3><span class="ps">口径 '+(state.regionMode==='A'?'A':'B')+'</span></div>'+chartBars(regionData)+'</div>'+
+  h+='<div class="dgrid"><div class="panel"><div class="ph"><h3>区域分布</h3></div>'+chartBars(regionData)+'</div>'+
     '<div class="panel"><div class="ph"><h3>品类分布</h3><span class="ps">按品类小类</span></div>'+chartBars(catData)+'</div></div>';
   h+='<div class="dgrid"><div class="panel"><div class="ph"><h3>供应商分布</h3><span class="ps">品牌-供应商绑定</span></div>'+chartBars(suppData,{labelW:126})+'</div>'+
     '<div class="panel"><div class="ph"><h3>价格带（综合单价）</h3><span class="ps">P25 / 中位 / P75 · 限价基准输入</span></div>'+chartBox(st)+
@@ -901,18 +1086,50 @@ function bindSeg(id,key){
     render();
   });
 }
-bindSeg('segTime','time'); bindSeg('segRegion','regionMode');
+/* 时间：固定选项 + 自定义（自定义不立刻重绘，等用户点"应用"） */
+document.getElementById('segTime').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b)return;
+  var v=b.getAttribute('data-v');
+  Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b)});
+  document.getElementById('dateRange').style.display = (v==='custom')?'flex':'none';
+  if(v!=='custom'){state.time=v; updateDateHint(); render()}
+  else {state.time='custom'; updateDateHint();}
+});
+function updateDateHint(){
+  var el=document.getElementById('dateHint');
+  el.textContent=''; el.className='datehint';
+}
+document.getElementById('btnApplyDate').addEventListener('click',function(){
+  var a=document.getElementById('dateFrom').value, b=document.getElementById('dateTo').value;
+  var hint=document.getElementById('dateHint');
+  if(a&&b&&a>b){hint.textContent='起始日期不能晚于结束日期';hint.className='datehint bad';return}
+  state.dateFrom=a; state.dateTo=b; state.time='custom';
+  /* 保证 segTime 上"自定义"处于选中 */
+  Array.prototype.forEach.call(document.getElementById('segTime').querySelectorAll('button'),function(x){
+    x.classList.toggle('on',x.getAttribute('data-v')==='custom')});
+  updateDateHint(); render();
+});
+document.getElementById('btnClearDate').addEventListener('click',function(){
+  document.getElementById('dateFrom').value=''; document.getElementById('dateTo').value='';
+  state.dateFrom=''; state.dateTo='';
+  updateDateHint();
+});
 bindSeg('segType','type'); bindSeg('segTax','tax');
 
 document.getElementById('btnReset').addEventListener('click',function(){
   MODULES.forEach(function(m){state.paths[m]=[]});       /* 清空各模块自己的下钻路径 */
-  state.time='12m'; state.regionMode='A'; state.type='all'; state.tax='incl';
-  ['segTime','segRegion','segType','segTax'].forEach(function(id,i){
-    var def=['12m','A','all','incl'][i];
+  state.time='12m'; state.dateFrom='2026-06-01'; state.dateTo='2026-11-30';
+  state.type='all'; state.tax='incl';
+  state.heatRegions=state.orgUnits=null; state.heatBrands=state.orgBrands='__top12__';
+  document.getElementById('dateFrom').value='2026-06-01';
+  document.getElementById('dateTo').value='2026-11-30';
+  document.getElementById('dateRange').style.display='none';
+  ['segTime','segType','segTax'].forEach(function(id,i){
+    var def=['12m','all','incl'][i];
     Array.prototype.forEach.call(document.getElementById(id).querySelectorAll('button'),function(b){
       b.classList.toggle('on',b.getAttribute('data-v')===def)});
   });
-  closeDrawer(); render();
+  updateDateHint(); closeDrawer(); render();
 });
 /* 模块内局部路径：点某级回到该级，点 × 返回上一级；只影响该模块 */
 document.addEventListener('click',function(e){
@@ -944,6 +1161,52 @@ document.getElementById('cHeat').addEventListener('click',function(e){
     openBrand(parts[1],rowsFor('region'));
   }
 });
+/* 组织模块：行下钻走 org 路径（到项目）；品牌列进入品牌详情；单元格按行+品牌过滤后看详情 */
+document.getElementById('cOrg').addEventListener('click',function(e){
+  var row=e.target.closest('[data-rowkey]');
+  if(row){drillMod('org','org',row.getAttribute('data-rowkey')); return}
+  var bc=e.target.closest('[data-brandcol]');
+  if(bc){openBrand(bc.getAttribute('data-brandcol'),rowsFor('org')); return}
+  var cell=e.target.closest('[data-cell]');
+  if(cell){openBrand(cell.getAttribute('data-cell').split('|')[1],rowsFor('org'));}
+});
+/* chips 多选：点击切换选中；null 表示全选，取消到 0 项时回到全选 */
+document.addEventListener('click',function(e){
+  var chip=e.target.closest('.chip'); if(!chip)return;
+  var g=chip.getAttribute('data-group'), v=chip.getAttribute('data-val');
+  var key={heatReg:'heatRegions',heatBrand:'heatBrands',org:'orgUnits',orgBrand:'orgBrands'}[g];
+  if(!key)return;
+  var all = g==='heatReg'?groupAmt(rowsFor('region'),regionOf).map(function(x){return x.k})
+          : g==='heatBrand'?allBrands(rowsFor('region'))
+          : g==='org'?orgKeys(rowsFor('org'))
+          : allBrands(rowsFor('org'));
+  var cur=(state[key]&&state[key]!=='__top12__')?state[key].slice():selected(state[key],all).slice();
+  var i=cur.indexOf(v);
+  if(i>=0)cur.splice(i,1); else cur.push(v);
+  state[key]=cur.length?cur:null;
+  if(g==='heatReg'||g==='heatBrand')renderHeat(rowsFor('region'));
+  else renderOrgHeat(rowsFor('org'));
+});
+/* 各筛选区的 全选 / 清空 / Top12 快捷（分别作用于各自模块，互不联动） */
+function bindPickerOps(id,group){
+  var el=document.getElementById(id); if(!el)return;
+  el.addEventListener('click',function(){
+    var key={heatReg:'heatRegions',heatBrand:'heatBrands',org:'orgUnits',orgBrand:'orgBrands'}[group];
+    var all = group==='heatReg'?groupAmt(rowsFor('region'),regionOf).map(function(x){return x.k})
+            : group==='heatBrand'?allBrands(rowsFor('region'))
+            : group==='org'?orgKeys(rowsFor('org'))
+            : allBrands(rowsFor('org'));
+    if(id.indexOf('None')>=0)state[key]=[all[0]];       /* 清空时保留第一项，避免空矩阵 */
+    else if(id.indexOf('Top')>=0)state[key]=all.slice(0,12);
+    else state[key]=null;                               /* 全选 = null */
+    if(group==='heatReg'||group==='heatBrand')renderHeat(rowsFor('region'));
+    else renderOrgHeat(rowsFor('org'));
+  });
+}
+bindPickerOps('heatRegAll','heatReg'); bindPickerOps('heatRegNone','heatReg');
+bindPickerOps('heatBrandTop','heatBrand'); bindPickerOps('heatBrandAll','heatBrand'); bindPickerOps('heatBrandNone','heatBrand');
+bindPickerOps('orgAll','org'); bindPickerOps('orgNone','org');
+bindPickerOps('orgBrandTop','orgBrand'); bindPickerOps('orgBrandAll','orgBrand'); bindPickerOps('orgBrandNone','orgBrand');
 /* 渠道模块：只写 channel 路径 */
 document.getElementById('cChannel').addEventListener('click',function(e){
   var g=e.target.closest('[data-key]'); if(!g)return;
@@ -965,10 +1228,10 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer(
 
 document.getElementById('btnCsv').addEventListener('click',function(){
   var rows=baseRows();   /* 与指标明细表一致：全局口径，不受模块下钻影响 */
-  var head=['结算月份','区域口径','区域','分公司','项目','品类大类','品类中类','品类小类','物料','规格型号','品牌','供应商','渠道','结算类型','数量','单位','含税单价','含税金额'];
+  var head=['结算月份','区域','分公司','项目','品类大类','品类中类','品类小类','物料','规格型号','品牌','供应商','渠道','结算类型','数量','单位','含税单价','含税金额'];
   var lines=[head.join(',')];
   rows.forEach(function(r){
-    lines.push([r.month,state.regionMode,regionOf(r),r.sub,r.proj,r.c1,r.c2,r.c3,r.product,r.model,
+    lines.push([r.month,regionOf(r),r.sub,r.proj,r.c1,r.c2,r.c3,r.product,r.model,
       r.brand||'未识别品牌',r.supplier,r.channel,STYPE_NAME[r.stype],r.qty,r.unit,r.price,Math.round(r.amount*100)/100]
       .map(function(v){return '"'+String(v).replace(/"/g,'""')+'"'}).join(','));
   });
@@ -986,10 +1249,6 @@ function selfTest(){
   console.assert(Math.abs(catSum-k.amt)<1,'品类合计≠总额');
   var regSum=sum(groupAmt(all,regionOf),function(x){return x.amt});
   console.assert(Math.abs(regSum-k.amt)<1,'区域合计≠总额');
-  state.regionMode='B';
-  var regSumB=sum(groupAmt(baseRows(),regionOf),function(x){return x.amt});
-  console.assert(Math.abs(regSumB-k.amt)<1,'双口径总额不一致');
-  state.regionMode='A';
   /* 模块隔离：改动 cat 路径后，其它模块的数据行数必须完全不变 */
   var before=MODULES.map(function(m){return rowsFor(m).length});
   state.paths.cat.push({dim:'cat1',value:'钢材',label:'品类大类'});
@@ -999,7 +1258,7 @@ function selfTest(){
   });
   state.paths.cat=[];
   return {rows:ROWS.length, total:k.amt, matShare:k.matShare, cr3:k.cr3, miss:k.miss,
-    catCheck:Math.abs(catSum-k.amt)<1, regCheck:Math.abs(regSum-k.amt)<1, dualCheck:Math.abs(regSumB-k.amt)<1,
+    catCheck:Math.abs(catSum-k.amt)<1, regCheck:Math.abs(regSum-k.amt)<1,
     isolateCheck:isolate};
 }
 window.__SELFTEST=selfTest();
@@ -1013,7 +1272,7 @@ function applyHash(){
   var brand=null;
   var owner={cat1:'cat',cat2:'cat',cat3:'cat',product:'cat',
     region:'region',sub:'region',proj:'region',
-    month:'trend',channel:'channel',supplier:'supplier'};
+    org:'org',month:'trend',channel:'channel',supplier:'supplier'};
   h.split('>').forEach(function(seg){
     var i=seg.indexOf('='); if(i<0)return;
     var dim=seg.slice(0,i), val=seg.slice(i+1);
