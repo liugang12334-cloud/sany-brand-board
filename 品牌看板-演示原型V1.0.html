@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>品牌看板 · 演示原型 V1.0</title>
+<style>
+:root{
+  --bg:#F4F7FA; --card:#fff; --line:#E3E9EF; --line2:#EFF3F7;
+  --txt:#16202B; --t2:#5A6B7B; --t3:#8A99A8;
+  --blue:#1668B8; --blue-d:#0E4E8C; --blue-bg:#EAF2FA;
+  --teal:#0E8B85; --orange:#C2410C; --green:#15803D; --red:#B42318;
+  --amber:#B45309;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",Helvetica,Arial,sans-serif;
+  font-size:13px;-webkit-font-smoothing:antialiased}
+.topbar{background:linear-gradient(100deg,#0E4E8C,#1668B8 55%,#1E7BC4);color:#fff;padding:16px 26px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.01em}
+.topbar .sub{font-size:12px;opacity:.82}
+.topbar .right{margin-left:auto;display:flex;gap:8px;align-items:center;font-size:11.5px;flex-wrap:wrap}
+.badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);border-radius:11px;padding:2px 10px;font-size:11px}
+.wrap{max-width:1560px;margin:0 auto;padding:16px 22px 40px}
+
+/* 筛选条 */
+.filters{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.fgroup{display:flex;align-items:center;gap:6px}
+.fgroup>.fl{font-size:11.5px;color:var(--t3);white-space:nowrap}
+.seg{display:flex;background:#F1F4F8;border-radius:7px;padding:2px;gap:2px}
+.seg button{border:0;background:transparent;font-size:11.5px;color:var(--t2);padding:4px 10px;border-radius:5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.seg button.on{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(20,50,80,.12);font-weight:600}
+.seg button:hover:not(.on){color:var(--txt)}
+.btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 12px;font-size:11.5px;color:var(--t2);cursor:pointer;font-family:inherit}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.pri{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn.pri:hover{background:var(--blue-d)}
+
+/* 面包屑 */
+.crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0 12px;padding:9px 14px;background:#fff;border:1px solid var(--line);border-radius:10px}
+.crumbs .lab{font-size:11.5px;color:var(--t3)}
+.crumb{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);background:var(--blue-bg);border:1px solid #D5E5F4;border-radius:6px;padding:2px 9px;cursor:pointer}
+.crumb:hover{background:#DDEAF7}
+.crumb.cur{background:var(--blue);color:#fff;border-color:var(--blue);cursor:default}
+.crumb .x{opacity:.6;font-size:11px}
+.crumb .sep{color:var(--t3);font-size:11px}
+.crumbs .hint{margin-left:auto;font-size:11px;color:var(--t3)}
+.crumbs .note{font-size:11.5px;color:var(--t2)}
+/* 模块内局部下钻路径 */
+.lcrumb{font-size:11px;color:var(--blue);cursor:pointer}
+.lcrumb.cur{color:var(--txt);font-weight:600;cursor:default}
+.csep{color:var(--t3);font-size:10px;margin:0 3px}
+.lx{font-size:13px;color:var(--t3);cursor:pointer;margin-left:6px;padding:0 3px;line-height:1}
+.lx:hover{color:var(--red)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;position:relative;overflow:hidden}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue)}
+.kpi.warn:before{background:var(--orange)}
+.kpi .kl{font-size:11.5px;color:var(--t2);display:flex;align-items:center;gap:5px}
+.kpi .kv{font-size:23px;font-weight:660;margin-top:5px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .kv small{font-size:12px;font-weight:500;color:var(--t2);margin-left:3px}
+.kpi .ks{font-size:11px;color:var(--t3);margin-top:4px}
+.up{color:var(--red)} .down{color:var(--green)}
+
+/* 面板 */
+.row{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;margin-bottom:12px}
+.row3{display:grid;grid-template-columns:1.25fr .85fr .9fr;gap:12px;margin-bottom:12px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 15px;min-width:0}
+.ph{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.ph h3{margin:0;font-size:13.5px;font-weight:640}
+.ph .ps{font-size:11px;color:var(--t3)}
+.ph .pa{margin-left:auto;font-size:11px;color:var(--t3)}
+.ph .pa b{color:var(--blue);font-weight:600;cursor:pointer}
+.chart{width:100%;display:block}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--t2);flex-wrap:wrap;margin-top:4px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
+
+/* 表格 */
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{text-align:left;background:#F5F8FB;color:var(--t2);font-weight:600;padding:7px 9px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:11.5px}
+table.dt td{padding:7px 9px;border-bottom:1px solid var(--line2);white-space:nowrap}
+table.dt tr:last-child td{border-bottom:0}
+table.dt tbody tr:hover{background:#F8FBFD}
+table.dt .r{text-align:right;font-variant-numeric:tabular-nums}
+table.dt .c{text-align:center}
+.link{color:var(--blue);cursor:pointer;font-weight:600}
+.link:hover{text-decoration:underline}
+.rankno{display:inline-block;width:19px;height:19px;line-height:19px;text-align:center;border-radius:4px;background:#F1F4F8;color:var(--t2);font-size:11px}
+.rankno.t1{background:#0E4E8C;color:#fff}.rankno.t2{background:#1668B8;color:#fff}.rankno.t3{background:#5B9BD5;color:#fff}
+.miss{color:var(--t3);font-style:italic}
+.tbl-scroll{overflow-x:auto}
+
+/* 抽屉 */
+.mask{position:fixed;inset:0;background:rgba(16,32,48,.42);display:none;z-index:40}
+.mask.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:860px;max-width:94vw;background:var(--bg);z-index:50;transform:translateX(105%);transition:transform .26s ease;box-shadow:-6px 0 30px rgba(10,30,50,.18);display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dh{background:#fff;border-bottom:1px solid var(--line);padding:15px 22px;display:flex;align-items:flex-start;gap:12px}
+.dh h2{margin:0;font-size:18px;font-weight:650}
+.dh .alias{font-size:11.5px;color:var(--t3);margin-top:4px}
+.dh .close{margin-left:auto;cursor:pointer;color:var(--t2);font-size:22px;line-height:1;padding:0 4px}
+.dh .close:hover{color:var(--red)}
+.db{overflow-y:auto;padding:16px 22px 30px}
+.dk{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.tagline{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:9px;background:var(--blue-bg);color:var(--blue)}
+.note-bar{font-size:11px;color:var(--t3);padding:8px 12px;background:#FDF9F4;border:1px dashed #E8D9C4;border-radius:8px;margin-bottom:12px}
+.empty{padding:36px;text-align:center;color:var(--t3);font-size:12.5px}
+.foot{font-size:11px;color:var(--t3);text-align:center;padding:14px}
+svg text{font-family:inherit}
+.clickable{cursor:pointer}
+.clickable:hover{opacity:.82}
+@media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}.row,.row3{grid-template-columns:1fr}.dgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1>品牌看板</h1>
+    <div class="sub">已结算清单项 · 多级下钻归一至材料品牌 · 演示数据</div>
+  </div>
+  <div class="right">
+    <span class="badge">数据日期 2026-11-19</span>
+    <span class="badge">T+1 日更</span>
+    <span class="badge">示例数据 · 非真实业务</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="filters">
+    <div class="fgroup"><span class="fl">时间</span>
+      <div class="seg" id="segTime">
+        <button data-v="12m" class="on">近12月</button><button data-v="6m">近6月</button><button data-v="3m">近3月</button><button data-v="ytd">本年</button>
+      </div>
+    </div>
+    <div class="fgroup"><span class="fl">区域口径</span>
+      <div class="seg" id="segRegion">
+        <button data-v="A" class="on">A 结算归属组织</button><button data-v="B">B 项目所在地</button>
+      </div>
+    </div>
+    <div class="fgroup"><span class="fl">结算类型</span>
+      <div class="seg" id="segType">
+        <button data-v="all" class="on">全类型</button><button data-v="mat">仅物资类</button><button data-v="other">非物资类</button>
+      </div>
+    </div>
+    <div class="fgroup"><span class="fl">金额口径</span>
+      <div class="seg" id="segTax">
+        <button data-v="incl" class="on">含税</button><button data-v="excl">不含税</button>
+      </div>
+    </div>
+    <button class="btn" id="btnReset" style="margin-left:auto">重置全部</button>
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="row">
+    <div class="panel">
+      <div class="ph"><h3>结算金额趋势</h3><span class="ps" id="trendSub"></span><span class="pa" id="trendPath"></span></div>
+      <div id="cTrend"></div>
+      <div class="legend" id="trendLegend"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>品类下钻</h3><span class="ps" id="catSub"></span><span class="pa" id="catPath"></span></div>
+      <div id="cCat"></div>
+    </div>
+  </div>
+
+  <div class="row3">
+    <div class="panel">
+      <div class="ph"><h3>区域 × 品牌</h3><span class="ps" id="heatSub"></span><span class="pa" id="heatPath"></span></div>
+      <div id="cHeat"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>采购渠道结构</h3><span class="ps" id="channelSub">金额占比 · 点击下钻</span><span class="pa" id="channelPath"></span></div>
+      <div id="cChannel"></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><h3>供应商 TOP 8</h3><span class="ps" id="suppSub">点击下钻至品牌</span><span class="pa" id="suppPath"></span></div>
+      <div id="cSupp"></div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:12px">
+    <div class="ph"><h3>品牌排行榜</h3><span class="ps">点击品牌名进入品牌详情 · 均价仅物资类</span><span class="pa" id="rankTotal"></span></div>
+    <div class="tbl-scroll"><table class="dt" id="tRank"></table></div>
+  </div>
+
+  <div class="panel">
+    <div class="ph"><h3>指标明细</h3><span class="ps" id="detailSub"></span>
+      <span class="pa"><button class="btn" id="btnCsv">导出当前明细 CSV</button></span></div>
+    <div class="tbl-scroll"><table class="dt" id="tDetail"></table></div>
+  </div>
+
+  <div class="foot">品牌看板 · 演示原型 V1.0 ｜ 口径：全量快照 max(ds) · 仅正向（剔除退还单） · 价格指标仅物资类 · 区域双口径 ｜ 数据为程序生成的示例数据</div>
+</div>
+
+<div class="mask" id="mask"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh">
+    <div><h2 id="dTitle"></h2><div class="alias" id="dAlias"></div>
+      <div style="margin-top:6px" id="dTags"></div></div>
+    <div class="close" id="dClose">×</div>
+  </div>
+  <div class="db" id="dBody"></div>
+</aside>
+
+<script>
+/* =====================================================================
+   演示数据模型：组织4级 / 品类3级+物料+规格 / 品牌归一(含别名) / 供应商 / 渠道
+   所有图表均由同一批明细行聚合而来，保证下钻前后数字一致
+   ===================================================================== */
+(function(){
+'use strict';
+
+/* ---------- 随机数（固定种子，演示可复现） ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+var rnd = mulberry32(20261119);
+function ri(a,b){return a+rnd()*(b-a)}
+function rii(a,b){return Math.floor(ri(a,b+1))}
+function pick(a){return a[Math.floor(rnd()*a.length)]}
+function wpick(pairs){var s=0,i;for(i=0;i<pairs.length;i++)s+=pairs[i][1];var r=rnd()*s;for(i=0;i<pairs.length;i++){r-=pairs[i][1];if(r<=0)return pairs[i][0]}return pairs[pairs.length-1][0]}
+
+/* ---------- 组织维：局 → 二级单位 → 分公司 → 项目 ---------- */
+var ORG = [
+  {r:'华东公司', w:26, cities:['杭州','苏州','南京']},
+  {r:'华中公司', w:24, cities:['武汉','长沙','郑州']},
+  {r:'华南公司', w:17, cities:['广州','深圳','佛山']},
+  {r:'华北公司', w:13, cities:['北京','天津','石家庄']},
+  {r:'西南公司', w:12, cities:['成都','重庆','昆明']},
+  {r:'西北公司', w:8,  cities:['西安','兰州','乌鲁木齐']}
+];
+var SUB_SUFFIX=['一分公司','二分公司'];
+var PROJ_SUFFIX=['金融中心项目','产业园项目','住宅总包项目','会展中心项目','轨道交通项目','医院项目'];
+var PROJECTS=[], ORG2PROJ={};
+ORG.forEach(function(o){
+  ORG2PROJ[o.r]=[];
+  SUB_SUFFIX.forEach(function(s,si){
+    var sub=o.r.replace('公司','')+s;
+    o.cities.forEach(function(c,ci){
+      var p={name:c+pick(PROJ_SUFFIX), region:o.r, sub:sub, org:o.r+'/'+sub};
+      p.id='P'+(PROJECTS.length+1);
+      PROJECTS.push(p); ORG2PROJ[o.r].push(p);
+    });
+  });
+});
+
+/* ---------- 品类维：大类/中类/小类 + 物料 + 规格 + 基准价 + 单位 ---------- */
+var CATS=[
+ {c1:'钢材', c2:'建筑钢材', items:[
+   {c3:'螺纹钢', product:'螺纹钢 HRB400E', models:['Φ12','Φ16','Φ20','Φ25'], base:3950, unit:'吨', q:[60,900]},
+   {c3:'高线', product:'高线 HPB300', models:['Φ6.5','Φ8','Φ10'], base:4180, unit:'吨', q:[40,600]}]},
+ {c1:'钢材', c2:'板材型材', items:[
+   {c3:'热轧板卷', product:'热轧板卷 Q235B', models:['3.0mm','5.0mm','8.0mm'], base:3920, unit:'吨', q:[30,400]},
+   {c3:'型钢', product:'H型钢 Q355B', models:['H300×300','H400×200'], base:4060, unit:'吨', q:[20,260]}]},
+ {c1:'混凝土', c2:'商品混凝土', items:[
+   {c3:'普通混凝土', product:'普通预拌混凝土', models:['C30','C40','C50'], base:438, unit:'m³', q:[400,5000]},
+   {c3:'抗渗混凝土', product:'抗渗预拌混凝土', models:['C35P6','C40P8'], base:482, unit:'m³', q:[200,2400]}]},
+ {c1:'混凝土', c2:'砂浆', items:[
+   {c3:'干混砂浆', product:'干混砌筑砂浆', models:['M5','M10'], base:328, unit:'吨', q:[80,900]}]},
+ {c1:'电线电缆', c2:'电力电缆', items:[
+   {c3:'交联电缆', product:'YJV 0.6/1kV', models:['4×95','4×120','3×185'], base:286, unit:'米', q:[600,7000]}]},
+ {c1:'电线电缆', c2:'布电线', items:[
+   {c3:'铜芯布电线', product:'BV 450/750V', models:['2.5mm²','4mm²','6mm²'], base:2.65, unit:'米', q:[20000,260000]}]},
+ {c1:'防水材料', c2:'防水卷材', items:[
+   {c3:'SBS卷材', product:'SBS改性沥青防水卷材', models:['3mm','4mm'], base:32.5, unit:'m²', q:[3000,42000]}]},
+ {c1:'防水材料', c2:'防水涂料', items:[
+   {c3:'聚氨酯涂料', product:'单组分聚氨酯防水涂料', models:['Ⅰ型','Ⅱ型'], base:18.6, unit:'kg', q:[2000,30000]}]},
+ {c1:'保温材料', c2:'岩棉制品', items:[
+   {c3:'岩棉板', product:'憎水岩棉板', models:['50mm','100mm'], base:46.5, unit:'m²', q:[2000,30000]}]},
+ {c1:'保温材料', c2:'挤塑制品', items:[
+   {c3:'挤塑板', product:'XPS挤塑板 B1级', models:['30mm','50mm'], base:38.2, unit:'m²', q:[1500,22000]}]}
+];
+/* 非物资类（无材料品牌意义，用于全类型口径） */
+var OTHER_TYPES=[
+ {stype:4, name:'周转材料租赁', c1:'周转租赁', c2:'架料租赁', c3:'钢管扣件租赁', product:'钢管扣件租赁', models:['按吨·天'], base:3.6, unit:'吨·天', q:[8000,120000], brandRate:.12},
+ {stype:5, name:'专项', c1:'专项服务', c2:'专业分包', c3:'桩基专项', product:'桩基专项结算', models:['综合'], base:1, unit:'项', q:[1,1], brandRate:.05},
+ {stype:6, name:'车辆', c1:'车辆租赁', c2:'运输机械', c3:'泵车租赁', product:'混凝土泵车租赁', models:['37m','52m'], base:2.4, unit:'台班', q:[40,600], brandRate:.1},
+ {stype:7, name:'费用', c1:'其他费用', c2:'措施费用', c3:'安全文明措施费', product:'安全文明措施费', models:['综合'], base:1, unit:'项', q:[1,1], brandRate:0}
+];
+
+/* ---------- 品牌主数据：标准品牌 + 别名（别名只作映射来源，不作维度） ---------- */
+var BRANDS={
+ '钢材':[['宝钢',1.09,20,'宝山钢铁/宝钢股份'],['武钢',1.035,17,'武汉钢铁/武钢集团'],['鄂钢',1.0,15,'鄂城钢铁/湖北鄂钢'],['鞍钢',1.02,10,'鞍山钢铁'],['沙钢',.985,14,'江苏沙钢'],['马钢',.972,9,'马鞍山钢铁'],['首钢',1.005,8,'首钢集团']],
+ '混凝土':[['华新',1.05,26,'华新水泥'],['海螺',1.0,28,'海螺水泥'],['中联',.972,20,'中联水泥'],['南方',.99,18,'南方水泥']],
+ '电线电缆':[['远东',1.10,26,'远东电缆'],['宝胜',1.02,22,'宝胜科技'],['上上',1.0,24,'江苏上上电缆'],['金杯',.935,16,'金杯电工']],
+ '防水材料':[['东方雨虹',1.12,34,'雨虹/北京东方雨虹'],['科顺',1.0,24,'科顺股份'],['卓宝',.94,18,'卓宝科技']],
+ '保温材料':[['洛科威',1.15,22,'ROCKWOOL/洛科威岩棉'],['樱花',1.0,26,'樱花岩棉'],['华能',.9,24,'华能保温']]
+};
+var REGION_BRAND_BIAS={ /* 区域品牌偏好：让区域×品牌矩阵有真实差异 */
+ '华东公司':{'宝钢':1.5,'沙钢':1.4},'华中公司':{'武钢':1.7,'鄂钢':1.6},
+ '华南公司':{'海螺':1.3},'华北公司':{'首钢':1.8,'鞍钢':1.4},
+ '西南公司':{'华新':1.2},'西北公司':{'鞍钢':1.2}
+};
+var SUPPLIERS={}, SUPPLIER_LIST=[];
+Object.keys(BRANDS).forEach(function(cat){
+  BRANDS[cat].forEach(function(b){
+    var list=[];
+    list.push(b[0]+'物资直销公司');
+    list.push(b[0]+'区域联采供应商');
+    list.push(pick(['华中','华东','华南','华北','西南'])+'建材贸易有限公司');
+    SUPPLIERS[b[0]]=list;
+    list.forEach(function(s){ if(SUPPLIER_LIST.indexOf(s)<0) SUPPLIER_LIST.push(s); });
+  });
+});
+var CHANNELS=[['集中采购',40],['区域联采',25],['项目自采',20],['商城直采',15]];
+var STYPE_NAME={1:'采购',2:'商城',3:'混凝土',4:'租赁',5:'专项',6:'车辆',7:'费用'};
+var MONTHS=['2025-12','2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11'];
+/* 钢价时间系数：年初低位、年中下探、四季度回升，形成可讲解的趋势 */
+function timeFactor(mi,cat){
+  var wave=[1.02,1.0,.985,.975,.965,.96,.968,.98,.995,1.012,1.03,1.045][mi];
+  if(cat==='混凝土') return 1+(wave-1)*.35;
+  if(cat==='电线电缆') return 1+(wave-1)*.8;
+  return wave;
+}
+
+/* ---------- 生成明细行（与 DWD 字段对应） ---------- */
+var ROWS=[];
+function pushRow(o){
+  o.id=ROWS.length+1;
+  o.amount=o.qty*o.price;
+  /* 下钻维度统一取 cat1、cat2、cat3，此处一次性建立规范字段，避免两套字段混用 */
+  o.cat1=o.c1; o.cat2=o.c2; o.cat3=o.c3;
+  ROWS.push(o);
+}
+
+MONTHS.forEach(function(month,mi){
+  /* 物资类 */
+  var plan=[['钢材',150],['混凝土',130],['电线电缆',80],['防水材料',45],['保温材料',35]];
+  plan.forEach(function(pl){
+    var cat=pl[0], n=pl[1];
+    for(var i=0;i<n;i++){
+      var org=wpick(ORG.map(function(o){return [o,o.w]}));
+      var pool=ORG2PROJ[org.r];
+      var cross = rnd()<.08;                       /* 8% 跨区域：结算组织 ≠ 项目所在地 */
+      var proj = cross ? pick(PROJECTS) : pick(pool);
+      var sub = cross ? org.r.replace('公司','')+pick(SUB_SUFFIX) : proj.sub;
+      var item = pick(CATS.filter(function(c){return c.c1===cat}).map(function(c){return c.items}).reduce(function(a,b){return a.concat(b)},[]));
+      var itemC2 = (CATS.filter(function(c){return c.c1===cat&&c.items.indexOf(item)>=0})[0]||{}).c2;
+      var bDef = wpick(BRANDS[cat].map(function(b){
+        var bias=(REGION_BRAND_BIAS[org.r]&&REGION_BRAND_BIAS[org.r][b[0]])||1;
+        return [b, b[2]*bias];
+      }));
+      var model=pick(item.models);
+      var modelF = 1 + (item.models.indexOf(model))*.035;   /* 规格越大价格略高 */
+      var regionF = 1 + (ORG.indexOf(org)-2.5)*.012;         /* 区域价差 */
+      var price = item.base * bDef[1] * modelF * regionF * timeFactor(mi,cat) * ri(.965,1.045);
+      price = Math.round(price*100)/100;
+      var qty = Math.round(ri(item.q[0],item.q[1]));
+      var channel = wpick(CHANNELS);
+      var stype = (cat==='混凝土') ? (rnd()<.8?3:1) : (channel==='商城直采'?2:1);
+      pushRow({month:month, mi:mi, region:org.r, sub:sub, proj:proj.name, projId:proj.id,
+        projRegion:proj.region, cross:cross, c1:cat, c2:itemC2, c3:item.c3,
+        product:item.product, model:model, brand:rnd()<.035?null:bDef[0], supplier:pick(SUPPLIERS[bDef[0]]),
+        channel:channel, stype:stype, qty:qty, unit:item.unit, price:price});
+    }
+  });
+  /* 非物资类 */
+  OTHER_TYPES.forEach(function(t){
+    var n={4:40,5:20,6:12,7:8}[t.stype];
+    for(var i=0;i<n;i++){
+      var org=wpick(ORG.map(function(o){return [o,o.w]}));
+      var proj=pick(ORG2PROJ[org.r]);
+      var branded = rnd()<t.brandRate;
+      var price = t.stype===5||t.stype===7 ? Math.round(ri(180000,2600000)) : Math.round(t.base*ri(.9,1.12)*100)/100;
+      var qty = Math.round(ri(t.q[0],t.q[1]));
+      pushRow({month:month, mi:mi, region:org.r, sub:proj.sub, proj:proj.name, projId:proj.id,
+        projRegion:proj.region, cross:false, c1:t.c1, c2:t.c2, c3:t.c3, product:t.product,
+        model:pick(t.models), brand:branded?pick(BRANDS['钢材'])[0]:null,
+        supplier:pick(SUPPLIER_LIST), channel:wpick(CHANNELS), stype:t.stype,
+        qty:qty, unit:t.unit, price:price, cat1:t.c1});
+    }
+  });
+});
+
+/* =====================================================================
+   状态 / 过滤 / 聚合
+   ===================================================================== */
+/* 全局筛选器 + 每个模块各自独立的下钻路径（彼此不共享、不联动） */
+var MODULES=['trend','cat','region','channel','supplier'];
+var state={
+  time:'12m', regionMode:'A', type:'all', tax:'incl',
+  paths:{trend:[], cat:[], region:[], channel:[], supplier:[]}
+};
+var PALETTE=['#1668B8','#0E8B85','#C2410C','#7C5CBF','#B45309','#2F6F4F','#5B9BD5','#8A99A8','#C2607E','#4A7C9B'];
+var DIM_LABEL={cat1:'品类大类',cat2:'品类中类',cat3:'品类小类',product:'物料',brand:'品牌',
+  region:'区域',sub:'分公司',proj:'项目',supplier:'供应商',channel:'渠道',month:'月份'};
+
+function regionOf(r){return state.regionMode==='A'?r.region:r.projRegion}
+function amtOf(r){return state.tax==='incl'?r.amount:r.amount/1.13}
+function inTime(r){
+  if(state.time==='6m')return r.mi>=6;
+  if(state.time==='3m')return r.mi>=9;
+  if(state.time==='ytd')return r.month>='2026-01';
+  return true;
+}
+function isMat(r){return r.stype<=3}
+function inType(r){return state.type==='all'?true:(state.type==='mat'?isMat(r):!isMat(r))}
+/* 只按指定的一条路径过滤；path 由各模块独立持有，绝不读取其它模块 */
+function matchPath(r,path){
+  path=path||[];
+  for(var i=0;i<path.length;i++){
+    var p=path[i], v;
+    if(p.dim==='region')v=regionOf(r); else v=r[p.dim];
+    if(v!==p.value)return false;
+  }
+  return true;
+}
+function baseRows(){ /* 全局筛选（不含任何下钻路径），用于占比分母与不参与下钻的模块 */
+  return ROWS.filter(function(r){return inTime(r)&&inType(r)});
+}
+/* 某模块的数据 = 全局筛选 + 该模块自己的下钻路径 */
+function rowsFor(mod){return baseRows().filter(function(r){return matchPath(r,state.paths[mod])})}
+
+function sum(rows,f){var s=0;for(var i=0;i<rows.length;i++)s+=f(rows[i]);return s}
+function uniq(rows,f){var m={};rows.forEach(function(r){var k=f(r);if(k)m[k]=1});return Object.keys(m)}
+function group(rows,f){
+  var m={};
+  rows.forEach(function(r){var k=f(r);if(k===undefined||k===null)k='(空)';(m[k]=m[k]||[]).push(r)});
+  return m;
+}
+function groupAmt(rows,f){
+  var g=group(rows,f), out=[];
+  Object.keys(g).forEach(function(k){out.push({k:k, amt:sum(g[k],amtOf), rows:g[k], n:g[k].length})});
+  out.sort(function(a,b){return b.amt-a.amt});
+  return out;
+}
+function brandOf(r){return r.brand||'未识别品牌'}
+
+function calcKpi(rows){
+  var mat=rows.filter(isMat);
+  var amt=sum(rows,amtOf), matAmt=sum(mat,amtOf);
+  var bg=groupAmt(mat.filter(function(r){return r.brand}),function(r){return r.brand});
+  var cr3=matAmt>0?sum(bg.slice(0,3),function(x){return x.amt})/matAmt:0;
+  var missAmt=sum(mat.filter(function(r){return !r.brand}),amtOf);
+  return {
+    amt:amt, matAmt:matAmt, matShare:amt>0?matAmt/amt:0,
+    items:rows.length, orders:uniq(rows,function(r){return r.projId}).length,
+    brands:uniq(mat,function(r){return r.brand}).length,
+    projects:uniq(rows,function(r){return r.proj}).length,
+    suppliers:uniq(rows,function(r){return r.supplier}).length,
+    cr3:cr3, miss:matAmt>0?missAmt/matAmt:0,
+    brandTop:bg
+  };
+}
+/* 环比：按 MONTHS 时间顺序取最后一月 vs 上一月（不可按金额排序） */
+function momOf(rows){
+  var g=group(rows,function(r){return r.month});
+  var ms=MONTHS.filter(function(m){return g[m]});
+  if(ms.length<2)return null;
+  var last=sum(g[ms[ms.length-1]],amtOf), prev=sum(g[ms[ms.length-2]],amtOf);
+  if(!prev)return null;
+  return last/prev-1;
+}
+
+/* ---------- 格式化 ---------- */
+function fm(v){
+  var a=Math.abs(v);
+  if(a>=1e8)return (v/1e8).toFixed(2)+'亿';
+  if(a>=1e4)return (v/1e4).toFixed(1)+'万';
+  return Math.round(v).toLocaleString('zh-CN');
+}
+function ffull(v){return Math.round(v).toLocaleString('zh-CN')}
+function fp(v,d){return (v*100).toFixed(d===undefined?1:d)+'%'}
+function fprice(v){
+  if(v===null||v===undefined||!isFinite(v))return '—';
+  return v>=1000?Math.round(v).toLocaleString('zh-CN'):(Math.round(v*100)/100).toLocaleString('zh-CN');
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* =====================================================================
+   SVG 图表引擎（零依赖）
+   ===================================================================== */
+function chartTrend(rows,opts){
+  opts=opts||{};
+  var g=group(rows,function(r){return r.month});
+  var months=MONTHS.filter(function(m){return g[m]});
+  if(!months.length)return '<div class="empty">当前筛选下无数据</div>';
+  var data=months.map(function(m){
+    var rs=g[m], mat=rs.filter(isMat);
+    var q=sum(mat,function(r){return r.qty}), a=sum(mat,amtOf);
+    return {m:m, amt:sum(rs,amtOf), matAmt:a, price:q>0?a/q:null};
+  });
+  var W=780,H=290,L=58,R=opts.price?58:20,T=18,B=42;
+  var iw=W-L-R, ih=H-T-B;
+  var max=Math.max.apply(null,data.map(function(d){return d.amt}))*1.12||1;
+  var bw=Math.min(34,iw/months.length*.56);
+  var s='', i;
+  function X(i){return L+iw*(i+.5)/months.length}
+  function Y(v){return T+ih*(1-v/max)}
+  for(i=0;i<=4;i++){
+    var y=T+ih*i/4, v=max*(1-i/4);
+    s+='<line x1="'+L+'" y1="'+y+'" x2="'+(W-R)+'" y2="'+y+'" stroke="#EDF1F5"/>'+
+       '<text x="'+(L-8)+'" y="'+(y+3.5)+'" text-anchor="end" font-size="10" fill="#8A99A8">'+fm(v)+'</text>';
+  }
+  data.forEach(function(d,i){
+    var h=ih*d.amt/max, x=X(i)-bw/2, y=Y(d.amt);
+    s+='<g class="clickable" data-month="'+d.m+'"><rect x="'+(x-6)+'" y="'+T+'" width="'+(bw+12)+'" height="'+ih+'" fill="transparent"/>'+
+       '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+Math.max(h,1)+'" rx="3" fill="#1668B8" opacity=".88">'+
+       '<title>'+d.m+'　金额 '+fm(d.amt)+'</title></rect></g>';
+    s+='<text x="'+X(i)+'" y="'+(H-B+16)+'" text-anchor="middle" font-size="10" fill="#8A99A8">'+d.m.slice(2)+'</text>';
+  });
+  var legend='<span><i style="background:#1668B8"></i>结算金额（'+(state.tax==='incl'?'含税':'不含税')+'）</span>';
+  if(opts.price){
+    var pv=data.map(function(d){return d.price}).filter(function(v){return v});
+    if(pv.length){
+      var pmax=Math.max.apply(null,pv)*1.15, pmin=Math.min.apply(null,pv)*.85;
+      function PY(v){return T+ih*(1-(v-pmin)/(pmax-pmin||1))}
+      var pts='',dot='';
+      data.forEach(function(d,i){
+        if(d.price===null)return;
+        pts+=(pts?'L':'M')+X(i)+','+PY(d.price)+' ';
+        dot+='<circle cx="'+X(i)+'" cy="'+PY(d.price)+'" r="3" fill="#C2410C"><title>'+d.m+'　加权均价 '+fprice(d.price)+' 元/'+esc(opts.unit||'')+'</title></circle>';
+      });
+      s+='<path d="'+pts+'" fill="none" stroke="#C2410C" stroke-width="2"/>'+dot;
+      for(i=0;i<=4;i++){
+        var yy=T+ih*i/4, vv=pmax-(pmax-pmin)*i/4;
+        s+='<text x="'+(W-R+8)+'" y="'+(yy+3.5)+'" font-size="10" fill="#C2410C">'+fprice(vv)+'</text>';
+      }
+      legend+='<span><i style="background:#C2410C"></i>加权均价（物资类，元/'+esc(opts.unit||'单位')+'，右轴）</span>';
+    }
+  }
+  return {svg:'<svg class="chart" viewBox="0 0 '+W+' '+H+'">'+s+'</svg>', legend:legend};
+}
+
+function chartBars(data,opts){
+  opts=opts||{};
+  if(!data.length)return '<div class="empty">当前筛选下无数据</div>';
+  var W=470, rowH=opts.rowH||30, T=6, L=opts.labelW||104, R=92;
+  var H=T+data.length*rowH+6;
+  var max=Math.max.apply(null,data.map(function(d){return d.value}))||1;
+  var iw=W-L-R-8;
+  var s='';
+  data.forEach(function(d,i){
+    var y=T+i*rowH, w=Math.max(iw*d.value/max,2);
+    var color=d.color||PALETTE[i%PALETTE.length];
+    var attr=d.key?(' class="clickable" data-key="'+esc(d.key)+'"'):'';
+    s+='<g'+attr+'>';
+    s+='<rect x="0" y="'+y+'" width="'+W+'" height="'+rowH+'" fill="transparent"/>';
+    s+='<text x="'+(L-8)+'" y="'+(y+rowH/2+4)+'" text-anchor="end" font-size="11" fill="'+(d.key?'#1668B8':'#3D4B5A')+'">'+esc(d.short||d.label)+'</text>';
+    s+='<rect x="'+L+'" y="'+(y+rowH/2-7)+'" width="'+iw+'" height="14" rx="3" fill="#F1F5F9"/>';
+    s+='<rect x="'+L+'" y="'+(y+rowH/2-7)+'" width="'+w+'" height="14" rx="3" fill="'+color+'" opacity=".9"><title>'+esc(d.label)+'　'+fm(d.value)+'</title></rect>';
+    s+='<text x="'+(W-R+8)+'" y="'+(y+rowH/2+4)+'" font-size="11" fill="#16202B" font-weight="600">'+fm(d.value)+'</text>';
+    if(d.pct!==undefined)s+='<text x="'+(W-6)+'" y="'+(y+rowH/2+4)+'" text-anchor="end" font-size="10" fill="#8A99A8">'+fp(d.pct)+'</text>';
+    s+='</g>';
+  });
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="height:auto">'+s+'</svg>';
+}
+
+function chartHeat(rows,regionKeys){
+  var brands=groupAmt(rows.filter(function(r){return r.brand}),function(r){return r.brand}).slice(0,6);
+  if(!regionKeys.length||!brands.length)return '<div class="empty">当前筛选下无数据</div>';
+  var W=600, LW=86, CW=(W-LW-14)/brands.length, RH=34, T=30;
+  var H=T+regionKeys.length*RH+8;
+  var cell={}; var max=0;
+  regionKeys.forEach(function(rk){
+    brands.forEach(function(b){
+      var v=sum(rows.filter(function(r){return regionOf(r)===rk&&r.brand===b.k}),amtOf);
+      cell[rk+'|'+b.k]=v; if(v>max)max=v;
+    });
+  });
+  var s='';
+  brands.forEach(function(b,i){
+    s+='<text x="'+(LW+CW*i+CW/2)+'" y="16" text-anchor="middle" font-size="11" fill="#1668B8" font-weight="600" class="clickable" data-brandcol="'+esc(b.k)+'">'+esc(b.k)+'</text>';
+  });
+  regionKeys.forEach(function(rk,ri){
+    var y=T+ri*RH;
+    s+='<text x="'+(LW-10)+'" y="'+(y+RH/2+4)+'" text-anchor="end" font-size="11" fill="#1668B8" class="clickable" data-regionrow="'+esc(rk)+'">'+esc(rk)+'</text>';
+    brands.forEach(function(b,bi){
+      var v=cell[rk+'|'+b.k], op=max>0?(.06+.86*v/max):0;
+      var x=LW+bi*CW;
+      s+='<g class="clickable" data-cell="'+esc(rk)+'|'+esc(b.k)+'">'+
+         '<rect x="'+(x+2)+'" y="'+(y+2)+'" width="'+(CW-4)+'" height="'+(RH-4)+'" rx="3" fill="#1668B8" opacity="'+op.toFixed(3)+'">'+
+         '<title>'+esc(rk)+' × '+esc(b.k)+'　'+fm(v)+'</title></rect>'+
+         '<text x="'+(x+CW/2)+'" y="'+(y+RH/2+4)+'" text-anchor="middle" font-size="10.5" fill="'+(op>.55?'#fff':'#3D4B5A')+'">'+(v>0?fm(v):'—')+'</text></g>';
+    });
+  });
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" style="height:auto">'+s+'</svg>';
+}
+
+function chartDonut(data){
+  var total=sum(data,function(d){return d.value});
+  if(!total)return '<div class="empty">当前筛选下无数据</div>';
+  var W=470,H=212,cx=100,cy=106,r=66,ir=40;
+  var s='',a0=-Math.PI/2;
+  data.forEach(function(d,i){
+    var frac=d.value/total, a1=a0+frac*Math.PI*2, color=PALETTE[i%PALETTE.length];
+    var large=frac>.5?1:0;
+    var x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    var xi0=cx+ir*Math.cos(a1),yi0=cy+ir*Math.sin(a1),xi1=cx+ir*Math.cos(a0),yi1=cy+ir*Math.sin(a0);
+    s+='<path class="clickable" data-key="'+esc(d.label)+'" d="M'+x0+','+y0+' A'+r+','+r+' 0 '+large+' 1 '+x1+','+y1+
+       ' L'+xi0+','+yi0+' A'+ir+','+ir+' 0 '+large+' 0 '+xi1+','+yi1+' Z" fill="'+color+'" opacity=".92">'+
+       '<title>'+esc(d.label)+'　'+fm(d.value)+'　'+fp(frac)+'</title></path>';
+    var ly=44+i*34;
+    s+='<g class="clickable" data-key="'+esc(d.label)+'">'+
+       '<rect x="200" y="'+(ly-9)+'" width="10" height="10" rx="2" fill="'+color+'"/>'+
+       '<text x="218" y="'+ly+'" font-size="11.5" fill="#16202B">'+esc(d.label)+'</text>'+
+       '<text x="452" y="'+ly+'" text-anchor="end" font-size="11.5" fill="#16202B" font-weight="600">'+fp(frac)+'</text>'+
+       '<text x="452" y="'+(ly+13)+'" text-anchor="end" font-size="10" fill="#8A99A8">'+fm(d.value)+'</text></g>';
+    a0=a1;
+  });
+  s+='<text x="'+cx+'" y="'+(cy-2)+'" text-anchor="middle" font-size="11" fill="#8A99A8">合计</text>'+
+     '<text x="'+cx+'" y="'+(cy+18)+'" text-anchor="middle" font-size="15" font-weight="650" fill="#16202B">'+fm(total)+'</text>';
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+
+function percentile(sorted,p){
+  if(!sorted.length)return null;
+  var idx=(sorted.length-1)*p, lo=Math.floor(idx), hi=Math.ceil(idx);
+  return sorted[lo]+(sorted[hi]-sorted[lo])*(idx-lo);
+}
+function priceStats(rows){
+  var ps=rows.filter(isMat).filter(function(r){return r.price>0}).map(function(r){return r.price}).sort(function(a,b){return a-b});
+  if(ps.length<5)return null;
+  return {min:ps[0],p25:percentile(ps,.25),p50:percentile(ps,.5),p75:percentile(ps,.75),max:ps[ps.length-1],n:ps.length};
+}
+function chartBox(st){
+  if(!st)return '<div class="empty">样本不足，无法计算价格带</div>';
+  var W=700,H=96,L=54,R=54,T=34;
+  var lo=st.min, hi=st.max, span=(hi-lo)||1;
+  function X(v){return L+(W-L-R)*(v-lo)/span}
+  var s='';
+  s+='<line x1="'+L+'" y1="'+T+'" x2="'+(W-R)+'" y2="'+T+'" stroke="#EDF1F5"/>';
+  s+='<line x1="'+X(st.min)+'" y1="'+(T-12)+'" x2="'+X(st.max)+'" y2="'+(T-12)+'" stroke="#C9D6E2" stroke-width="2"/>';
+  s+='<rect x="'+X(st.p25)+'" y="'+(T-26)+'" width="'+(X(st.p75)-X(st.p25))+'" height="28" rx="3" fill="#1668B8" opacity=".22" stroke="#1668B8"/>';
+  s+='<line x1="'+X(st.p50)+'" y1="'+(T-28)+'" x2="'+X(st.p50)+'" y2="'+(T+4)+'" stroke="#C2410C" stroke-width="2.5"/>';
+  [[st.min,'最低'],[st.p25,'P25'],[st.p50,'中位'],[st.p75,'P75'],[st.max,'最高']].forEach(function(pair){
+    s+='<text x="'+X(pair[0])+'" y="'+(T+24)+'" text-anchor="middle" font-size="10.5" fill="#16202B" font-weight="600">'+fprice(pair[0])+'</text>'+
+       '<text x="'+X(pair[0])+'" y="'+(T+38)+'" text-anchor="middle" font-size="9.5" fill="#8A99A8">'+pair[1]+'</text>';
+  });
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+
+/* =====================================================================
+   下钻路径
+   ===================================================================== */
+var CAT_SEQ=['cat1','cat2','cat3','product'];
+var REG_SEQ=['region','sub','proj'];
+var PATH_EL={trend:'trendPath',cat:'catPath',region:'heatPath',channel:'channelPath',supplier:'suppPath'};
+
+function depthOf(seq,path){var d=0;path=path||[];seq.forEach(function(dim,i){if(path.some(function(p){return p.dim===dim}))d=i+1});return d}
+
+/* 下钻只写入指定模块自己的路径，并且只重绘该模块；不读取、不改写其它模块 */
+function pushMod(mod,dim,value){
+  if(dim==='brand'){openBrand(value,rowsFor(mod));return} /* 品牌为详情终点，沿用来源模块数据 */
+  state.paths[mod].push({dim:dim,value:value,label:DIM_LABEL[dim]||dim});
+  renderMod(mod);
+}
+function drillMod(mod,dim,value){ /* 替换同模块同维度旧层级，避免重复 */
+  state.paths[mod]=state.paths[mod].filter(function(p){return p.dim!==dim});
+  state.paths[mod].push({dim:dim,value:value,label:DIM_LABEL[dim]||dim});
+  renderMod(mod);
+}
+function backMod(mod,to){ /* 模块内返回：to 为保留的层级数，省略则退回一级 */
+  var p=state.paths[mod];
+  p.length = (to===undefined)?Math.max(0,p.length-1):to;
+  renderMod(mod);
+}
+function renderMod(mod){
+  var rows=rowsFor(mod);
+  if(mod==='trend')renderTrend(rows);
+  else if(mod==='cat')renderCat(rows);
+  else if(mod==='region')renderHeat(rows);
+  else if(mod==='channel')renderChannel(rows);
+  else if(mod==='supplier')renderSupp(rows);
+  renderLocalPath(mod);
+}
+/* 模块内局部下钻路径：只展示并操作本模块自己的层级 */
+function renderLocalPath(mod){
+  var path=state.paths[mod], el=document.getElementById(PATH_EL[mod]);
+  if(!path.length){el.innerHTML='';return}
+  var h='';
+  path.forEach(function(p,i){
+    if(i)h+='<span class="csep">›</span>';
+    var cur=i===path.length-1;
+    h+='<span class="lcrumb'+(cur?' cur':'')+'" data-mod="'+mod+'" data-i="'+i+'" title="'+(cur?'当前层':'回到此层')+'">'+esc(p.value)+'</span>';
+  });
+  h+='<span class="lx" data-mod="'+mod+'" data-i="'+(path.length-2)+'" title="返回上一级">×</span>';
+  el.innerHTML=h;
+}
+
+/* =====================================================================
+   各区域渲染
+   ===================================================================== */
+function renderKpi(rows){
+  var k=calcKpi(rows), mom=momOf(rows);
+  var taxName=state.tax==='incl'?'含税':'不含税';
+  var momHtml=mom===null?'<span style="color:var(--t3)">环比 —</span>':
+    '<span class="'+(mom>=0?'up':'down')+'">环比 '+(mom>=0?'↑ ':'↓ ')+fp(Math.abs(mom))+'</span>';
+  var cards=[
+    {l:taxName+'结算金额',v:fm(k.amt),s:'全类型 7 类合计 · '+momHtml,warn:false},
+    {l:'物资类结算金额',v:fm(k.matAmt),s:'占总额 '+fp(k.matShare)+' · 采购/商城/混凝土'},
+    {l:'结算清单项数',v:k.items.toLocaleString('zh-CN'),s:'覆盖项目 '+k.projects+' 个'},
+    {l:'覆盖品牌数',v:k.brands,s:'供应商 '+k.suppliers+' 家（物资类口径）'},
+    {l:'Top3 品牌集中度',v:fp(k.cr3),s:'CR3 · 物资类 · '+(k.cr3>.6?'高度集中':k.cr3>.4?'中度集中':'竞争充分'),
+      warn:k.cr3>.6},
+    {l:'品牌缺失率（物资类）',v:fp(k.miss),s:'未识别品牌金额 '+fm(k.matAmt*k.miss),warn:k.miss>.05}
+  ];
+  document.getElementById('kpis').innerHTML=cards.map(function(c){
+    return '<div class="kpi'+(c.warn?' warn':'')+'"><div class="kl">'+c.l+'</div><div class="kv">'+c.v+'</div><div class="ks">'+c.s+'</div></div>';
+  }).join('');
+}
+
+function renderTrend(rows){
+  var mat=rows.filter(isMat);
+  var units=uniq(mat,function(r){return r.unit});
+  var showPrice=units.length===1&&mat.length>0;
+  var t=chartTrend(rows,{price:showPrice,unit:units[0]});
+  document.getElementById('cTrend').innerHTML=t.svg;
+  document.getElementById('trendLegend').innerHTML=t.legend;
+  document.getElementById('trendSub').textContent=showPrice?
+    '金额柱 + 加权均价线（计量单位一致：'+units[0]+'）':
+    '当前范围含多个计量单位，均价不跨单位汇总，仅显示金额';
+}
+
+function renderCat(rows){
+  var d=depthOf(CAT_SEQ,state.paths.cat), el=document.getElementById('cCat'), sub=document.getElementById('catSub');
+  if(d<4){
+    var dim=CAT_SEQ[d];
+    var data=groupAmt(rows,function(r){return r[dim]}).slice(0,12).map(function(x,i){
+      return {label:x.k, value:x.amt, pct:sum(rows,amtOf)?x.amt/sum(rows,amtOf):0,
+        key:dim+'::'+x.k, color:PALETTE[0]};
+    });
+    el.innerHTML=chartBars(data,{labelW:112});
+    sub.textContent='当前层级：'+DIM_LABEL[dim]+'（共 '+groupAmt(rows,function(r){return r[dim]}).length+' 项，点击下钻）';
+  }else{
+    var mat=rows.filter(isMat);
+    var tot=sum(mat,amtOf);
+    var data=groupAmt(mat,brandOf).slice(0,12).map(function(x){
+      return {label:x.k, value:x.amt, pct:tot?x.amt/tot:0, key:'brand::'+x.k,
+        color:x.k==='未识别品牌'?'#B9C4CE':PALETTE[3]};
+    });
+    el.innerHTML=chartBars(data,{labelW:112});
+    sub.textContent='当前层级：品牌（下钻终点，点击进入品牌详情）';
+  }
+}
+
+function regionKeys(rows){
+  var d=depthOf(REG_SEQ,state.paths.region);
+  if(d===0)return groupAmt(rows,regionOf).map(function(x){return x.k});
+  if(d===1)return groupAmt(rows,function(r){return r.sub}).map(function(x){return x.k});
+  return groupAmt(rows,function(r){return r.proj}).slice(0,8).map(function(x){return x.k});
+}
+function renderHeat(rows){
+  var d=depthOf(REG_SEQ,state.paths.region);
+  var keys=regionKeys(rows);
+  document.getElementById('cHeat').innerHTML=chartHeat(rows,keys);
+  var names=['二级单位','分公司','项目','项目'];
+  document.getElementById('heatSub').textContent=
+    '口径 '+(state.regionMode==='A'?'A 结算归属组织':'B 项目所在地')+' · 行：'+names[Math.min(d,3)]+' · 列：Top6 品牌 · 点击行/单元格下钻';
+}
+
+function renderChannel(rows){
+  var data=groupAmt(rows,function(r){return r.channel}).map(function(x){return {label:x.k,value:x.amt}});
+  document.getElementById('cChannel').innerHTML=chartDonut(data);
+}
+function renderSupp(rows){
+  var data=groupAmt(rows,function(r){return r.supplier}).slice(0,8).map(function(x){
+    return {label:x.k,short:x.k.length>11?x.k.slice(0,11)+'…':x.k,value:x.amt,key:'supplier::'+x.k,color:PALETTE[1]};
+  });
+  document.getElementById('cSupp').innerHTML=chartBars(data,{labelW:118});
+}
+
+function renderRank(rows){
+  var mat=rows.filter(isMat), tot=sum(mat,amtOf);
+  var g=groupAmt(mat,brandOf);
+  var known=g.filter(function(x){return x.k!=='未识别品牌'});
+  var miss=g.filter(function(x){return x.k==='未识别品牌'});
+  var list=known.concat(miss).slice(0,16);
+  var h='<thead><tr><th class="c" style="width:44px">排名</th><th>品牌</th><th class="r">结算金额</th><th class="r">金额占比</th>'+
+    '<th class="r">加权均价</th><th class="c">单位</th><th class="r">覆盖项目</th><th class="r">供应商数</th><th class="r">环比</th><th class="c">操作</th></tr></thead><tbody>';
+  list.forEach(function(x,i){
+    var rs=x.rows, q=sum(rs,function(r){return r.qty}), a=sum(rs,amtOf);
+    var units=uniq(rs,function(r){return r.unit});
+    var m=momOf(rs);
+    var missCls=x.k==='未识别品牌'?' class="miss"':'';
+    h+='<tr><td class="c"><span class="rankno'+(i===0?' t1':i===1?' t2':i===2?' t3':'')+'">'+(x.k==='未识别品牌'?'—':i+1)+'</span></td>'+
+      '<td><span class="link" data-brand="'+esc(x.k)+'"'+missCls+'>'+esc(x.k)+'</span></td>'+
+      '<td class="r"><b>'+fm(x.amt)+'</b></td>'+
+      '<td class="r">'+fp(tot?x.amt/tot:0)+'</td>'+
+      '<td class="r">'+(units.length===1?fprice(a/q):'—')+'</td>'+
+      '<td class="c">'+(units.length===1?esc(units[0]):'多单位')+'</td>'+
+      '<td class="r">'+uniq(rs,function(r){return r.proj}).length+'</td>'+
+      '<td class="r">'+uniq(rs,function(r){return r.supplier}).length+'</td>'+
+      '<td class="r">'+(m===null?'—':'<span class="'+(m>=0?'up':'down')+'">'+(m>=0?'+':'−')+fp(Math.abs(m))+'</span>')+'</td>'+
+      '<td class="c"><span class="link" data-brand="'+esc(x.k)+'">详情</span></td></tr>';
+  });
+  h+='</tbody>';
+  document.getElementById('tRank').innerHTML=h;
+  document.getElementById('rankTotal').textContent='物资类品牌 '+known.length+' 个 · 未识别品牌不计排名 · 当前合计 '+fm(tot);
+}
+
+function renderDetail(rows){
+  var list=rows.slice().sort(function(a,b){return b.amount-a.amount}).slice(0,40);
+  var h='<thead><tr><th>结算月份</th><th>区域</th><th>项目</th><th>品类小类</th><th>物料 / 规格</th><th>品牌</th>'+
+    '<th>供应商</th><th>渠道</th><th>类型</th><th class="r">数量</th><th class="c">单位</th><th class="r">含税单价</th><th class="r">含税金额</th></tr></thead><tbody>';
+  list.forEach(function(r){
+    h+='<tr><td>'+r.month+'</td><td>'+esc(regionOf(r))+'</td><td>'+esc(r.proj)+'</td><td>'+esc(r.c3)+'</td>'+
+      '<td>'+esc(r.product)+' '+esc(r.model)+'</td>'+
+      '<td>'+(r.brand?esc(r.brand):'<span class="miss">未识别</span>')+'</td>'+
+      '<td>'+esc(r.supplier)+'</td><td>'+esc(r.channel)+'</td><td>'+STYPE_NAME[r.stype]+'</td>'+
+      '<td class="r">'+r.qty.toLocaleString('zh-CN')+'</td><td class="c">'+esc(r.unit)+'</td>'+
+      '<td class="r">'+fprice(r.price)+'</td><td class="r"><b>'+fm(r.amount)+'</b></td></tr>';
+  });
+  h+='</tbody>';
+  document.getElementById('tDetail').innerHTML=h;
+  document.getElementById('detailSub').textContent='按金额降序，显示前 40 条 / 共 '+rows.length.toLocaleString('zh-CN')+' 条（当前下钻路径 + 全局筛选）';
+}
+
+function render(){
+  /* 全局筛选器变化时才整页重绘；每个模块读取自己的下钻路径，彼此互不影响 */
+  var all=baseRows();
+  renderKpi(all);                 /* KPI 固定全局口径，不随任何模块下钻变化 */
+  renderTrend(rowsFor('trend')); renderCat(rowsFor('cat'));
+  renderHeat(rowsFor('region')); renderChannel(rowsFor('channel')); renderSupp(rowsFor('supplier'));
+  renderRank(all); renderDetail(all);  /* 排行榜与明细固定全局口径 */
+  MODULES.forEach(renderLocalPath);
+}
+
+/* =====================================================================
+   品牌详情（下钻终点）
+   ===================================================================== */
+function brandMeta(name){
+  var cats=Object.keys(BRANDS);
+  for(var i=0;i<cats.length;i++){
+    var b=BRANDS[cats[i]].filter(function(x){return x[0]===name})[0];
+    if(b)return {cat:cats[i],alias:b[3]};
+  }
+  return null;
+}
+function openBrand(name,scopeRows){
+  var scope=scopeRows||baseRows();               /* 详情只基于来源模块的数据上下文 */
+  var rows=scope.filter(function(r){return brandOf(r)===name});
+  if(!rows.length)return;
+  var mat=rows.filter(isMat), k=calcKpi(rows);
+  var all=baseRows(), allMat=all.filter(isMat);   /* 占比分母固定为全局物资口径 */
+  var share=sum(allMat,amtOf)?sum(mat,amtOf)/sum(allMat,amtOf):0;
+  var meta=brandMeta(name);
+  document.getElementById('dTitle').textContent=name;
+  document.getElementById('dAlias').textContent=meta?
+    '标准品牌：'+name+'　｜　别名来源（仅映射，不作维度）：'+meta.alias:
+    '未归一品牌值：清单原始文本未映射到品牌主数据，不计入品牌排名';
+  document.getElementById('dTags').innerHTML=
+    '<span class="tagline">'+(meta?meta.cat:'未识别')+'</span> <span class="tagline">下钻终点</span>'+
+    (scope!==undefined?' <span class="tagline">基于来源模块的当前数据</span>':'');
+  var units=uniq(mat,function(r){return r.unit});
+  var showPrice=units.length===1;
+  var t=chartTrend(rows,{price:showPrice,unit:units[0]});
+  var st=priceStats(rows);
+  var regionData=groupAmt(rows,regionOf).slice(0,6).map(function(x){return {label:x.k,value:x.amt,color:PALETTE[0]}});
+  var catData=groupAmt(rows,function(r){return r.c3}).slice(0,6).map(function(x){return {label:x.k,value:x.amt,color:PALETTE[1]}});
+  var suppData=groupAmt(rows,function(r){return r.supplier}).slice(0,6).map(function(x){return {label:x.k,value:x.amt,color:PALETTE[3]}});
+  var projData=groupAmt(rows,function(r){return r.proj}).slice(0,10);
+  var h='';
+  h+='<div class="note-bar">口径：仅正向 · '+(state.tax==='incl'?'含税':'不含税')+' · 均价与价格带仅物资类'+
+    (showPrice?'（单位 '+esc(units[0])+'）':'（多计量单位，均价不展示）')+' · 时间范围与上方全局筛选一致</div>';
+  h+='<div class="dk">'+
+    '<div class="kpi"><div class="kl">结算金额</div><div class="kv">'+fm(k.amt)+'</div><div class="ks">全类型合计</div></div>'+
+    '<div class="kpi"><div class="kl">物资金额占比</div><div class="kv">'+fp(share)+'</div><div class="ks">占当前范围物资类总额</div></div>'+
+    '<div class="kpi"><div class="kl">加权均价</div><div class="kv">'+(showPrice?fprice(sum(mat,amtOf)/sum(mat,function(r){return r.qty})):'—')+'</div><div class="ks">'+(showPrice?'元/'+esc(units[0]):'多单位')+'</div></div>'+
+    '<div class="kpi"><div class="kl">覆盖项目 / 供应商</div><div class="kv">'+k.projects+' <small>/ '+k.suppliers+'</small></div><div class="ks">清单项 '+k.items+' 条</div></div></div>';
+  h+='<div class="panel" style="margin-bottom:12px"><div class="ph"><h3>月度趋势</h3><span class="ps">金额 + 加权均价</span></div>'+t.svg+'<div class="legend">'+t.legend+'</div></div>';
+  h+='<div class="dgrid"><div class="panel"><div class="ph"><h3>区域分布</h3><span class="ps">口径 '+(state.regionMode==='A'?'A':'B')+'</span></div>'+chartBars(regionData)+'</div>'+
+    '<div class="panel"><div class="ph"><h3>品类分布</h3><span class="ps">按品类小类</span></div>'+chartBars(catData)+'</div></div>';
+  h+='<div class="dgrid"><div class="panel"><div class="ph"><h3>供应商分布</h3><span class="ps">品牌-供应商绑定</span></div>'+chartBars(suppData,{labelW:126})+'</div>'+
+    '<div class="panel"><div class="ph"><h3>价格带（综合单价）</h3><span class="ps">P25 / 中位 / P75 · 限价基准输入</span></div>'+chartBox(st)+
+    (st?'<div style="font-size:11px;color:var(--t2);margin-top:4px">样本 '+st.n+' 条 · 中位数 '+fprice(st.p50)+' · 四分位距 '+fprice(st.p75-st.p25)+' · 最大/最小价差 '+fp(st.p50?(st.max-st.min)/st.p50:0)+'</div>':'')+'</div></div>';
+  h+='<div class="panel" style="margin-bottom:12px"><div class="ph"><h3>项目清单 TOP 10</h3><span class="ps">按金额降序</span></div>'+
+    '<div class="tbl-scroll"><table class="dt"><thead><tr><th>项目</th><th>区域</th><th>分公司</th><th class="r">金额</th><th class="r">占比</th><th class="r">清单项</th></tr></thead><tbody>'+
+    projData.map(function(x){
+      var r0=x.rows[0];
+      return '<tr><td>'+esc(x.k)+'</td><td>'+esc(r0.projRegion)+'</td><td>'+esc(r0.sub)+'</td><td class="r"><b>'+fm(x.amt)+'</b></td>'+
+        '<td class="r">'+fp(k.amt?x.amt/k.amt:0)+'</td><td class="r">'+x.n+'</td></tr>';
+    }).join('')+'</tbody></table></div></div>';
+  h+='<div class="panel"><div class="ph"><h3>关联清单明细</h3><span class="ps">金额 TOP 15</span></div>'+
+    '<div class="tbl-scroll"><table class="dt"><thead><tr><th>月份</th><th>物料 / 规格</th><th>供应商</th><th>渠道</th><th class="r">数量</th><th class="c">单位</th><th class="r">单价</th><th class="r">金额</th></tr></thead><tbody>'+
+    rows.slice().sort(function(a,b){return b.amount-a.amount}).slice(0,15).map(function(r){
+      return '<tr><td>'+r.month+'</td><td>'+esc(r.product)+' '+esc(r.model)+'</td><td>'+esc(r.supplier)+'</td><td>'+esc(r.channel)+'</td>'+
+        '<td class="r">'+r.qty.toLocaleString('zh-CN')+'</td><td class="c">'+esc(r.unit)+'</td><td class="r">'+fprice(r.price)+'</td><td class="r"><b>'+fm(r.amount)+'</b></td></tr>';
+    }).join('')+'</tbody></table></div></div>';
+  document.getElementById('dBody').innerHTML=h;
+  document.getElementById('mask').classList.add('on');
+  document.getElementById('drawer').classList.add('on');
+}
+function closeDrawer(){
+  document.getElementById('mask').classList.remove('on');
+  document.getElementById('drawer').classList.remove('on');
+}
+
+/* =====================================================================
+   事件绑定
+   ===================================================================== */
+function bindSeg(id,key){
+  document.getElementById(id).addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b)return;
+    state[key]=b.getAttribute('data-v');
+    Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.toggle('on',x===b)});
+    render();
+  });
+}
+bindSeg('segTime','time'); bindSeg('segRegion','regionMode');
+bindSeg('segType','type'); bindSeg('segTax','tax');
+
+document.getElementById('btnReset').addEventListener('click',function(){
+  MODULES.forEach(function(m){state.paths[m]=[]});       /* 清空各模块自己的下钻路径 */
+  state.time='12m'; state.regionMode='A'; state.type='all'; state.tax='incl';
+  ['segTime','segRegion','segType','segTax'].forEach(function(id,i){
+    var def=['12m','A','all','incl'][i];
+    Array.prototype.forEach.call(document.getElementById(id).querySelectorAll('button'),function(b){
+      b.classList.toggle('on',b.getAttribute('data-v')===def)});
+  });
+  closeDrawer(); render();
+});
+/* 模块内局部路径：点某级回到该级，点 × 返回上一级；只影响该模块 */
+document.addEventListener('click',function(e){
+  var x=e.target.closest('.lx');
+  if(x){backMod(x.getAttribute('data-mod'));return}
+  var lc=e.target.closest('.lcrumb');
+  if(lc){backMod(lc.getAttribute('data-mod'),parseInt(lc.getAttribute('data-i'),10)+1);return}
+});
+/* 品类模块：只写 cat 路径、只重绘品类模块 */
+document.getElementById('cCat').addEventListener('click',function(e){
+  var g=e.target.closest('[data-key]'); if(!g)return;
+  var parts=g.getAttribute('data-key').split('::');
+  pushMod('cat',parts[0],parts.slice(1).join('::'));
+});
+/* 趋势模块：按月份，只写 trend 路径 */
+document.getElementById('cTrend').addEventListener('click',function(e){
+  var g=e.target.closest('[data-month]'); if(!g)return;
+  drillMod('trend','month',g.getAttribute('data-month'));
+});
+/* 区域模块：行下钻走 region 路径；品牌列/单元格进入品牌详情（基于该模块数据） */
+document.getElementById('cHeat').addEventListener('click',function(e){
+  var row=e.target.closest('[data-regionrow]');
+  if(row){var d=depthOf(REG_SEQ,state.paths.region); pushMod('region',REG_SEQ[Math.min(d,2)],row.getAttribute('data-regionrow')); return}
+  var bc=e.target.closest('[data-brandcol]');
+  if(bc){openBrand(bc.getAttribute('data-brandcol'),rowsFor('region')); return}
+  var cell=e.target.closest('[data-cell]');
+  if(cell){
+    var parts=cell.getAttribute('data-cell').split('|');
+    openBrand(parts[1],rowsFor('region'));
+  }
+});
+/* 渠道模块：只写 channel 路径 */
+document.getElementById('cChannel').addEventListener('click',function(e){
+  var g=e.target.closest('[data-key]'); if(!g)return;
+  drillMod('channel','channel',g.getAttribute('data-key'));
+});
+/* 供应商模块：只写 supplier 路径 */
+document.getElementById('cSupp').addEventListener('click',function(e){
+  var g=e.target.closest('[data-key]'); if(!g)return;
+  drillMod('supplier','supplier',g.getAttribute('data-key').split('::').slice(1).join('::'));
+});
+/* 排行榜点击品牌进入详情：基于全局数据，不改变任何模块的下钻路径 */
+document.getElementById('tRank').addEventListener('click',function(e){
+  var g=e.target.closest('[data-brand]'); if(!g)return;
+  openBrand(g.getAttribute('data-brand'),baseRows());
+});
+document.getElementById('dClose').addEventListener('click',closeDrawer);
+document.getElementById('mask').addEventListener('click',closeDrawer);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeDrawer()});
+
+document.getElementById('btnCsv').addEventListener('click',function(){
+  var rows=baseRows();   /* 与指标明细表一致：全局口径，不受模块下钻影响 */
+  var head=['结算月份','区域口径','区域','分公司','项目','品类大类','品类中类','品类小类','物料','规格型号','品牌','供应商','渠道','结算类型','数量','单位','含税单价','含税金额'];
+  var lines=[head.join(',')];
+  rows.forEach(function(r){
+    lines.push([r.month,state.regionMode,regionOf(r),r.sub,r.proj,r.c1,r.c2,r.c3,r.product,r.model,
+      r.brand||'未识别品牌',r.supplier,r.channel,STYPE_NAME[r.stype],r.qty,r.unit,r.price,Math.round(r.amount*100)/100]
+      .map(function(v){return '"'+String(v).replace(/"/g,'""')+'"'}).join(','));
+  });
+  var blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='品牌看板_明细_全局.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+});
+
+/* ---------- 自检（控制台输出，验证口径一致性） ---------- */
+function selfTest(){
+  var all=baseRows(), k=calcKpi(all);
+  var catSum=sum(groupAmt(all,function(r){return r.c1}),function(x){return x.amt});
+  console.assert(Math.abs(catSum-k.amt)<1,'品类合计≠总额');
+  var regSum=sum(groupAmt(all,regionOf),function(x){return x.amt});
+  console.assert(Math.abs(regSum-k.amt)<1,'区域合计≠总额');
+  state.regionMode='B';
+  var regSumB=sum(groupAmt(baseRows(),regionOf),function(x){return x.amt});
+  console.assert(Math.abs(regSumB-k.amt)<1,'双口径总额不一致');
+  state.regionMode='A';
+  /* 模块隔离：改动 cat 路径后，其它模块的数据行数必须完全不变 */
+  var before=MODULES.map(function(m){return rowsFor(m).length});
+  state.paths.cat.push({dim:'cat1',value:'钢材',label:'品类大类'});
+  var after=MODULES.map(function(m){return rowsFor(m).length});
+  var isolate=MODULES.every(function(m,i){
+    return m==='cat' ? true : before[i]===after[i];
+  });
+  state.paths.cat=[];
+  return {rows:ROWS.length, total:k.amt, matShare:k.matShare, cr3:k.cr3, miss:k.miss,
+    catCheck:Math.abs(catSum-k.amt)<1, regCheck:Math.abs(regSum-k.amt)<1, dualCheck:Math.abs(regSumB-k.amt)<1,
+    isolateCheck:isolate};
+}
+window.__SELFTEST=selfTest();
+render();
+
+/* URL hash 直达下钻状态（演示/调试用）：维度按归属分派到各自模块
+   #cat1=钢材>cat2=建筑钢材 · #region=华中公司 · #channel=集中采购 · #month=2026-11 · #brand=宝钢 */
+function applyHash(){
+  var h=decodeURIComponent(location.hash.replace(/^#/,''));
+  if(!h)return;
+  var brand=null;
+  var owner={cat1:'cat',cat2:'cat',cat3:'cat',product:'cat',
+    region:'region',sub:'region',proj:'region',
+    month:'trend',channel:'channel',supplier:'supplier'};
+  h.split('>').forEach(function(seg){
+    var i=seg.indexOf('='); if(i<0)return;
+    var dim=seg.slice(0,i), val=seg.slice(i+1);
+    if(dim==='brand'){brand=val;return}
+    var mod=owner[dim];
+    if(mod)state.paths[mod].push({dim:dim,value:val,label:DIM_LABEL[dim]||dim});
+  });
+  render();
+  if(brand)openBrand(brand,baseRows());
+}
+applyHash();
+var __st=document.createElement('div');
+__st.id='selftest'; __st.style.display='none';
+__st.textContent=JSON.stringify(window.__SELFTEST);
+document.body.appendChild(__st);
+
+})();
+</script>
+</body>
+</html>
